@@ -3,7 +3,7 @@ import { useData } from '../contexts/DataContext';
 import TabletCard from '../components/TabletCard';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 import { Tablet } from '../types';
-import { Search, Filter, Trash2, ArrowUp, ArrowDown, Database, Settings, ChevronUp, ChevronDown, X, Plus, ArrowUpDown, GitCompare } from 'lucide-react';
+import { Search, Filter, ArrowUp, ArrowDown, Database, Settings, ChevronUp, ChevronDown, X, Plus, ArrowUpDown, GitCompare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const parseSearchQuery = (query: string): string[] => {
@@ -47,7 +47,7 @@ const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
 
 const Catalog: React.FC = () => {
   const navigate = useNavigate();
-  const { tablets, resetData, addTablet, updateTablet, flaggedIds, clearFlags } = useData();
+  const { tablets, addTablet, updateTablet, flaggedIds, clearFlags } = useData();
   const [search, setSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
@@ -72,6 +72,7 @@ const Catalog: React.FC = () => {
   // Pane Expansion State
   const [isFilteringExpanded, setIsFilteringExpanded] = useState(true);
   const [isSortingExpanded, setIsSortingExpanded] = useState(true);
+  const [isColumnsExpanded, setIsColumnsExpanded] = useState(true);
 
   const handleCreateNew = () => {
       // Initialize with template. ID and dates will be handled by context if we save.
@@ -215,13 +216,6 @@ const Catalog: React.FC = () => {
     }
   };
 
-  const handleClearDb = () => {
-    resetData();
-    setSearch('');
-    setSelectedBrand('All');
-    setSelectedType('All');
-  };
-
   return (
     <div className="space-y-6 h-full flex flex-col relative">
       <div className="flex flex-col gap-4">
@@ -231,11 +225,6 @@ const Catalog: React.FC = () => {
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Catalog</h2>
             <div className="flex items-center gap-2 mt-1">
               <p className="text-slate-500 dark:text-slate-400">{filteredTablets.length} of {tablets.length} tablets</p>
-              {tablets.length > 0 && (
-                <button onClick={handleClearDb} title="Clear database" className="text-xs text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 flex items-center gap-1 transition-colors">
-                   <Trash2 size={10} /> Clear DB
-                </button>
-              )}
             </div>
           </div>
 
@@ -256,18 +245,18 @@ const Catalog: React.FC = () => {
                 className="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-primary-900/20 flex items-center gap-2 font-medium transition-colors whitespace-nowrap"
             >
                 <Plus size={20} />
-                <span className="hidden sm:inline">Add Entry</span>
+                <span className="hidden sm:inline">Add Tablet</span>
             </button>
           </div>
         </div>
 
         {/* Controls Sections */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
             
             {/* Filtering Section */}
-            <div className={`xl:col-span-2 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isFilteringExpanded ? 'p-4 gap-3' : 'p-3 gap-0'}`}>
+            <div className={`xl:col-span-2 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isFilteringExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
               <div 
-                className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isFilteringExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-2' : ''}`}
+                className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isFilteringExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
                 onClick={() => setIsFilteringExpanded(!isFilteringExpanded)}
               >
                 <div className="flex items-center gap-2">
@@ -278,7 +267,7 @@ const Catalog: React.FC = () => {
               </div>
 
               {isFilteringExpanded && (
-                  <div className="flex flex-col sm:flex-row gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="flex flex-col sm:flex-row gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <select 
                       value={selectedBrand} 
                       onChange={(e) => setSelectedBrand(e.target.value)}
@@ -298,15 +287,15 @@ const Catalog: React.FC = () => {
               )}
             </div>
 
-            {/* Sorting & Columns Section */}
-            <div className={`bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isSortingExpanded ? 'p-4 gap-3' : 'p-3 gap-0'}`}>
+            {/* Sorting Section */}
+            <div className={`bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isSortingExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
               <div 
-                className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isSortingExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-2' : ''}`}
+                className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isSortingExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
                 onClick={() => setIsSortingExpanded(!isSortingExpanded)}
               >
                 <div className="flex items-center gap-2">
                     <ArrowUpDown size={16} />
-                    <h3 className="text-xs font-bold uppercase tracking-wider">Sorting & Columns</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Sorting</h3>
                 </div>
                 {isSortingExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </div>
@@ -328,17 +317,32 @@ const Catalog: React.FC = () => {
                     >
                       {sortOrder === 'asc' ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
                     </button>
+                  </div>
+              )}
+            </div>
 
-                    {/* Divider */}
-                    <div className="w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+            {/* Columns Section */}
+            <div className={`bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isColumnsExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
+              <div 
+                className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isColumnsExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
+                onClick={() => setIsColumnsExpanded(!isColumnsExpanded)}
+              >
+                <div className="flex items-center gap-2">
+                    <Settings size={16} />
+                    <h3 className="text-xs font-bold uppercase tracking-wider">Columns</h3>
+                </div>
+                {isColumnsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </div>
 
-                    {/* Settings Toggle */}
+              {isColumnsExpanded && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                     <button 
                       onClick={() => setShowSettings(!showSettings)}
-                      className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl focus:outline-none hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors shrink-0 ${showSettings ? 'text-primary-600 dark:text-white border-primary-500 bg-primary-50 dark:bg-slate-700' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
+                      className={`w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl focus:outline-none hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center gap-2 transition-colors ${showSettings ? 'text-primary-600 dark:text-white border-primary-500 bg-primary-50 dark:bg-slate-700' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'}`}
                       title="Column Settings"
                     >
                       <Settings size={18} />
+                      <span className="text-sm font-medium">Manage Columns</span>
                     </button>
                   </div>
               )}
