@@ -19,13 +19,13 @@ const App: React.FC = () => {
         <HashRouter>
           <DragDropOverlay />
           <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors duration-200">
-            <Sidebar 
-              isCollapsed={isSidebarCollapsed} 
-              toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+            <Sidebar
+              isCollapsed={isSidebarCollapsed}
+              toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             />
-            
+
             <main className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
-              <div className="max-w-7xl mx-auto p-4 md:p-8 h-screen overflow-hidden flex flex-col">
+              <div className="max-w-7xl mx-auto px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-4 h-screen overflow-hidden flex flex-col">
                 <Routes>
                   <Route path="/" element={<Catalog />} />
                   <Route path="/compare" element={<Compare />} />
