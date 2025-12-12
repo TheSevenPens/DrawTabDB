@@ -443,21 +443,21 @@ const Catalog: React.FC = () => {
 
           <div className="flex gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-80 lg:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                 <input 
                 type="text" 
                 placeholder='Search... (e.g. "Artist 12")' 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:border-primary-500 w-full shadow-sm"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white pl-8 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 w-full shadow-sm text-xs"
                 />
             </div>
             
             <button 
                 onClick={handleCreateNew}
-                className="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-xl shadow-lg shadow-primary-900/20 flex items-center gap-2 font-medium transition-colors whitespace-nowrap"
+                className="bg-primary-600 hover:bg-primary-500 text-white px-3 py-1.5 rounded-lg shadow-lg shadow-primary-900/20 flex items-center gap-1.5 text-xs font-medium transition-colors whitespace-nowrap"
             >
-                <Plus size={20} />
+                <Plus size={14} />
                 <span className="hidden sm:inline">Add Tablet</span>
             </button>
           </div>
