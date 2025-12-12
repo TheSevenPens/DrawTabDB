@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Database, PenTool, AlertTriangle, Download, PanelLeftClose, PanelLeftOpen, History, GitCompare, Settings } from 'lucide-react';
+import { Database, AlertTriangle, Download, PanelLeftClose, PanelLeftOpen, History, GitCompare, Settings } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 
 interface SidebarProps {
@@ -39,10 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
-      <div className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 gap-3'} border-b border-slate-200 dark:border-slate-800 transition-all`}>
-        <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white shrink-0">
-          <PenTool size={18} />
-        </div>
+      <div className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6'} border-b border-slate-200 dark:border-slate-800 transition-all`}>
         {!isCollapsed && (
           <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight overflow-hidden whitespace-nowrap animate-in fade-in duration-300">
             DrawTabDB
