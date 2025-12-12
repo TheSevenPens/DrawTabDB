@@ -731,7 +731,8 @@
       "AspectRatio": "16:10",
       "id": "e1a691a6-d73e-4f48-9d92-9185ed816be3",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:37.515Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "CTH-490",
@@ -753,7 +754,8 @@
       "AspectRatio": "16:10",
       "id": "eefb4b7e-5061-4a89-8b9a-de7515d462e5",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:59.358Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "CTH-670",
@@ -773,7 +775,8 @@
       "AspectRatio": "16:10",
       "id": "34947067-79d5-415a-b81a-e65e75d842be",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:42.143Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "CTH-690",
@@ -797,7 +800,8 @@
       "AspectRatio": "16:10",
       "id": "21687a90-eddd-4727-81cc-bc30b4f04a21",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:51.061Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "CTL-4100",
@@ -1400,7 +1404,8 @@
       "AspectRatio": "16:9",
       "id": "3b565a01-0544-4dee-bbd2-aeba06af96b4",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:28.697Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-134",
@@ -1492,7 +1497,8 @@
       "AspectRatio": "16:9",
       "id": "10e6422e-9fd3-47dd-9a57-e356ce4ca446",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:32.957Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-167",
@@ -1527,7 +1533,8 @@
       "AspectRatio": "16:9",
       "id": "6211dc1c-5a5c-45f3-988f-917870e4e0c1",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:38.035Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-172",
@@ -1546,7 +1553,8 @@
       "Age": "2",
       "id": "89036dec-a3cc-4f7a-8ee8-1d9ff9faadba",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:43.683Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-227",
@@ -1565,7 +1573,8 @@
       "Age": "2",
       "id": "f74b002f-cac5-4490-9ace-943893d53427",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:48.521Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-2420",
@@ -1600,7 +1609,8 @@
       "AspectRatio": "16:9",
       "id": "b70dbf2f-ceb0-415c-873f-33b4a0e07ad3",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:53.636Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-246",
@@ -1636,7 +1646,8 @@
       "AspectRatio": "16:9",
       "id": "62cd9b73-c996-422b-93c4-4c128acdaf6e",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:50:24.354Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-271",
@@ -1671,7 +1682,8 @@
       "AspectRatio": "16:9",
       "id": "8bcb5bb8-87eb-4afb-b6e2-8bbb78675d0c",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:51:00.154Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "DTH-3220",
@@ -4497,7 +4509,8 @@
       "AspectRatio": "16:10",
       "id": "2b73410e-33e6-44f0-9a30-f7df1eaf24b1",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:21.389Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-451",
@@ -4522,7 +4535,8 @@
       "AspectRatio": "16:10",
       "id": "7c4062a5-217d-4127-af11-868c63c736a8",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:48:35.885Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-460",
@@ -4572,7 +4586,8 @@
       "AspectRatio": "16:10",
       "id": "743c5ec8-3a09-42aa-9a0d-1863a1094440",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:15.187Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-651",
@@ -4597,7 +4612,8 @@
       "AspectRatio": "16:10",
       "id": "5d496d0e-128b-4d06-93cb-6d59e3674bc4",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:48:30.784Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-660",
@@ -4648,7 +4664,8 @@
       "AspectRatio": "16:10",
       "id": "954412d1-5297-4801-b185-745d4f55e1f1",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:49:10.131Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-851",
@@ -4673,7 +4690,8 @@
       "AspectRatio": "16:10",
       "id": "f56f9476-b272-42b7-99cd-53d198a5fe53",
       "CreateDate": "2025-12-12T12:33:46.983Z",
-      "ModifiedDate": "2025-12-12T12:33:46.983Z"
+      "ModifiedDate": "2025-12-12T18:48:25.789Z",
+      "SupportsTouch": "YES"
     },
     {
       "ModelID": "PTH-860",
@@ -5775,6 +5793,44 @@
       "id": "baab2cd3-d7e2-4c07-8b6d-a8758def35db",
       "CreateDate": "2025-12-12T12:33:46.983Z",
       "ModifiedDate": "2025-12-12T12:33:46.983Z"
+    },
+    {
+      "ModelID": "MD160UH",
+      "ModelName": "Artist Ultra 16",
+      "Brand": "XPPEN",
+      "Type": "PENDISPLAY",
+      "LaunchYear": "2025",
+      "Status": "AVAILABLE",
+      "Audience": "PROFESSIONAL",
+      "id": "f8a037ae-45ef-4392-8b61-d3b09f33166b",
+      "CreateDate": "2025-12-12T18:57:53.360Z",
+      "ModifiedDate": "2025-12-12T18:57:53.360Z",
+      "Family": "ARTISTULTRA",
+      "DevSize": "405.0 x 273.0 x 13.5",
+      "DevWeight": "1530",
+      "DigitizerSize": "344.2 x 193.6",
+      "PressureLevels": "16384",
+      "DisplayPanelTech": "OLED",
+      "DisplayResolution": "3840 x 2160",
+      "DisplayRefreshRate": "60",
+      "DisplayColorGamuts": "AdobeRGB:99%, sRGB:99%, DisplayP3: 98%",
+      "DisplayColorBitDepth": "10",
+      "DisplayBrightness": "350",
+      "Lamination": "YES",
+      "AntiGlare": "ETCHEDGLASS",
+      "DisplayViewingAngleVertical": "170",
+      "DisplayContrast": "100000",
+      "AccCenter": "0.4 ",
+      "SupportsTouch": "YES",
+      "DigitizerResolution": "200",
+      "IncludedPen": "X3PRO,X3PROSLIM",
+      "PenTech": "PASSIVE_EMR",
+      "Tilt": "60",
+      "MaxHover": "10",
+      "PixelDensity": "283",
+      "DigitizerDiag": "394.91",
+      "Age": "0",
+      "AspectRatio": "16:9"
     }
   ]
 }
