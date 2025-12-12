@@ -4,6 +4,41 @@ import TabletCard from '../components/TabletCard';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 import { Tablet } from '../types';
 import { Search, Filter, ArrowUp, ArrowDown, Database, Settings, ChevronUp, ChevronDown, X, Plus, ArrowUpDown, GitCompare } from 'lucide-react';
+
+type FilterFieldType = 'text' | 'numeric';
+type TextCondition = 'equals' | 'contains' | 'beginswith' | 'endswith';
+type NumericCondition = 'equals' | 'lt' | 'lte' | 'gt' | 'gte' | 'range';
+
+interface Filter {
+  id: string;
+  field: keyof Tablet;
+  condition: TextCondition | NumericCondition;
+  value: string;
+  value2?: string; // For range condition
+}
+
+const FILTERABLE_FIELDS: Array<{
+  key: keyof Tablet;
+  label: string;
+  type: FilterFieldType;
+}> = [
+  { key: 'Brand', label: 'Brand', type: 'text' },
+  { key: 'Type', label: 'Type', type: 'text' },
+  { key: 'ModelName', label: 'Model Name', type: 'text' },
+  { key: 'ModelID', label: 'Model ID', type: 'text' },
+  { key: 'Family', label: 'Family', type: 'text' },
+  { key: 'Status', label: 'Status', type: 'text' },
+  { key: 'Audience', label: 'Audience', type: 'text' },
+  { key: 'LaunchYear', label: 'Launch Year', type: 'numeric' },
+  { key: 'Age', label: 'Age', type: 'numeric' },
+  { key: 'DigitizerDiag', label: 'Diagonal Size', type: 'numeric' },
+  { key: 'PressureLevels', label: 'Pressure Levels', type: 'numeric' },
+  { key: 'ReportRate', label: 'Report Rate', type: 'numeric' },
+  { key: 'DevWeight', label: 'Weight', type: 'numeric' },
+  { key: 'PixelDensity', label: 'Pixel Density', type: 'numeric' },
+  { key: 'AspectRatio', label: 'Aspect Ratio', type: 'numeric' },
+  { key: 'SupportsTouch', label: 'Touch Support', type: 'text' },
+];
 import { useNavigate } from 'react-router-dom';
 
 const parseSearchQuery = (query: string): string[] => {
@@ -49,8 +84,12 @@ const Catalog: React.FC = () => {
   const navigate = useNavigate();
   const { tablets, addTablet, updateTablet, flaggedIds, clearFlags } = useData();
   const [search, setSearch] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('All');
-  const [selectedType, setSelectedType] = useState('All');
+  const [filters, setFilters] = useState<Filter[]>([]);
+  const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
+  const [newFilterField, setNewFilterField] = useState<keyof Tablet | ''>('');
+  const [newFilterCondition, setNewFilterCondition] = useState<TextCondition | NumericCondition>('contains');
+  const [newFilterValue, setNewFilterValue] = useState('');
+  const [newFilterValue2, setNewFilterValue2] = useState('');
   const [sortField, setSortField] = useState('ModelName');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
@@ -110,18 +149,83 @@ const Catalog: React.FC = () => {
     });
   };
 
-  // Derived unique options
-  const brands = useMemo(() => {
-    const uniqueBrands = new Set<string>();
-    tablets.forEach(t => {
-      if (t.Brand) {
-        uniqueBrands.add(t.Brand.trim().toUpperCase());
-      }
-    });
-    return ['All', ...Array.from(uniqueBrands).sort()];
-  }, [tablets]);
+  const addFilter = () => {
+    if (!newFilterField || !newFilterValue) return;
+    
+    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === newFilterField);
+    if (!fieldConfig) return;
 
-  const types = ['All', 'PENDISPLAY', 'PENTABLET'];
+    if (editingFilterId) {
+      // Update existing filter in place
+      setFilters(prev => prev.map(f => 
+        f.id === editingFilterId 
+          ? {
+              ...f,
+              field: newFilterField,
+              condition: newFilterCondition,
+              value: newFilterValue,
+              ...(newFilterCondition === 'range' && newFilterValue2 ? { value2: newFilterValue2 } : { value2: undefined })
+            }
+          : f
+      ));
+      setEditingFilterId(null);
+    } else {
+      // Add new filter
+      const filter: Filter = {
+        id: Date.now().toString(),
+        field: newFilterField,
+        condition: newFilterCondition,
+        value: newFilterValue,
+        ...(newFilterCondition === 'range' && newFilterValue2 ? { value2: newFilterValue2 } : {})
+      };
+      setFilters(prev => [...prev, filter]);
+    }
+
+    setNewFilterField('');
+    setNewFilterCondition('contains');
+    setNewFilterValue('');
+    setNewFilterValue2('');
+  };
+
+  const removeFilter = (id: string) => {
+    setFilters(prev => prev.filter(f => f.id !== id));
+  };
+
+  const editFilter = (filter: Filter) => {
+    setNewFilterField(filter.field);
+    setNewFilterCondition(filter.condition);
+    setNewFilterValue(filter.value);
+    setNewFilterValue2(filter.value2 || '');
+    setEditingFilterId(filter.id);
+  };
+
+  const getAvailableConditions = (field: keyof Tablet): Array<{ value: TextCondition | NumericCondition; label: string }> => {
+    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === field);
+    if (!fieldConfig) return [];
+
+    if (fieldConfig.type === 'text') {
+      return [
+        { value: 'equals', label: 'Equals' },
+        { value: 'contains', label: 'Contains' },
+        { value: 'beginswith', label: 'Begins With' },
+        { value: 'endswith', label: 'Ends With' },
+      ];
+    } else {
+      return [
+        { value: 'equals', label: 'Equals' },
+        { value: 'lt', label: 'Less Than' },
+        { value: 'lte', label: 'Less Than or Equal' },
+        { value: 'gt', label: 'Greater Than' },
+        { value: 'gte', label: 'Greater Than or Equal' },
+        { value: 'range', label: 'Within Range' },
+      ];
+    }
+  };
+
+  const getFieldType = (field: keyof Tablet): FilterFieldType => {
+    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === field);
+    return fieldConfig?.type || 'text';
+  };
   
   const sortOptions = [
     { label: 'Name', value: 'ModelName' },
@@ -146,10 +250,55 @@ const Catalog: React.FC = () => {
         modelName.includes(term) || modelID.includes(term) || brand.includes(term)
       );
 
-      const matchesBrand = selectedBrand === 'All' || (tablet.Brand && tablet.Brand.trim().toUpperCase() === selectedBrand);
-      const matchesType = selectedType === 'All' || tablet.Type === selectedType;
+      const matchesFilters = filters.every(filter => {
+        const fieldValue = tablet[filter.field];
+        if (!fieldValue) return false;
+
+        const fieldType = getFieldType(filter.field);
+        const value = fieldValue.toString().toLowerCase();
+        const filterValue = filter.value.toLowerCase();
+
+        if (fieldType === 'text') {
+          const condition = filter.condition as TextCondition;
+          switch (condition) {
+            case 'equals':
+              return value === filterValue;
+            case 'contains':
+              return value.includes(filterValue);
+            case 'beginswith':
+              return value.startsWith(filterValue);
+            case 'endswith':
+              return value.endsWith(filterValue);
+            default:
+              return true;
+          }
+        } else {
+          const numValue = parseFloat(value);
+          const numFilter = parseFloat(filter.value);
+          if (isNaN(numValue)) return false;
+
+          const condition = filter.condition as NumericCondition;
+          switch (condition) {
+            case 'equals':
+              return numValue === numFilter;
+            case 'lt':
+              return numValue < numFilter;
+            case 'lte':
+              return numValue <= numFilter;
+            case 'gt':
+              return numValue > numFilter;
+            case 'gte':
+              return numValue >= numFilter;
+            case 'range':
+              const numFilter2 = filter.value2 ? parseFloat(filter.value2) : numFilter;
+              return numValue >= Math.min(numFilter, numFilter2) && numValue <= Math.max(numFilter, numFilter2);
+            default:
+              return true;
+          }
+        }
+      });
       
-      return matchesSearch && matchesBrand && matchesType;
+      return matchesSearch && matchesFilters;
     });
 
     return filtered.sort((a, b) => {
@@ -192,7 +341,7 @@ const Catalog: React.FC = () => {
       if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [searchTerms, selectedBrand, selectedType, tablets, sortField, sortOrder]);
+  }, [searchTerms, filters, tablets, sortField, sortOrder]);
 
   // Derived state for details navigation
   const detailIndex = useMemo(() => {
@@ -262,27 +411,126 @@ const Catalog: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <Filter size={16} />
                     <h3 className="text-xs font-bold uppercase tracking-wider">Filtering</h3>
+                    {filters.length > 0 && (
+                      <span className="bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {filters.length}
+                      </span>
+                    )}
                 </div>
                 {isFilteringExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </div>
 
               {isFilteringExpanded && (
-                  <div className="flex flex-col sm:flex-row gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <select 
-                      value={selectedBrand} 
-                      onChange={(e) => setSelectedBrand(e.target.value)}
-                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 rounded-xl focus:outline-none focus:border-primary-500 flex-1"
-                    >
-                      {brands.map(b => <option key={b} value={b}>{b === 'All' ? 'All Brands' : b}</option>)}
-                    </select>
+                  <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* Active Filters as Pills */}
+                    {filters.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {filters.map(filter => {
+                          const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
+                          const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
+                          return (
+                            <div
+                              key={filter.id}
+                              onDoubleClick={() => editFilter(filter)}
+                              className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+                              title="Double-click to edit"
+                            >
+                              <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
+                              <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">
+                                {filter.condition === 'range' && filter.value2 
+                                  ? `${filter.value} - ${filter.value2}`
+                                  : filter.value}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeFilter(filter.id);
+                                }}
+                                className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                                title="Remove filter"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
-                    <select 
-                      value={selectedType} 
-                      onChange={(e) => setSelectedType(e.target.value)}
-                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 rounded-xl focus:outline-none focus:border-primary-500 flex-1"
-                    >
-                      {types.map(t => <option key={t} value={t}>{t === 'All' ? 'All Types' : (t === 'PENDISPLAY' ? 'Pen Displays' : 'Pen Tablets')}</option>)}
-                    </select>
+                    {/* Add Filter Controls */}
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <select
+                        value={newFilterField}
+                        onChange={(e) => {
+                          const field = e.target.value as keyof Tablet;
+                          setNewFilterField(field);
+                          if (!field) {
+                            setEditingFilterId(null);
+                          }
+                          const conditions = getAvailableConditions(field);
+                          if (conditions.length > 0) {
+                            setNewFilterCondition(conditions[0].value);
+                          }
+                        }}
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
+                      >
+                        <option value="">Select field...</option>
+                        {FILTERABLE_FIELDS.map(field => (
+                          <option key={field.key} value={field.key}>{field.label}</option>
+                        ))}
+                      </select>
+
+                      {newFilterField && (
+                        <>
+                          <select
+                            value={newFilterCondition}
+                            onChange={(e) => setNewFilterCondition(e.target.value as TextCondition | NumericCondition)}
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
+                          >
+                            {getAvailableConditions(newFilterField).map(cond => (
+                              <option key={cond.value} value={cond.value}>{cond.label}</option>
+                            ))}
+                          </select>
+
+                          {newFilterCondition === 'range' ? (
+                            <>
+                              <input
+                                type={getFieldType(newFilterField) === 'numeric' ? 'number' : 'text'}
+                                value={newFilterValue}
+                                onChange={(e) => setNewFilterValue(e.target.value)}
+                                placeholder="Min"
+                                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
+                              />
+                              <input
+                                type={getFieldType(newFilterField) === 'numeric' ? 'number' : 'text'}
+                                value={newFilterValue2}
+                                onChange={(e) => setNewFilterValue2(e.target.value)}
+                                placeholder="Max"
+                                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
+                              />
+                            </>
+                          ) : (
+                            <input
+                              type={getFieldType(newFilterField) === 'numeric' ? 'number' : 'text'}
+                              value={newFilterValue}
+                              onChange={(e) => setNewFilterValue(e.target.value)}
+                              placeholder="Value"
+                              className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
+                            />
+                          )}
+
+                          <button
+                            onClick={addFilter}
+                            disabled={!newFilterValue || (newFilterCondition === 'range' && !newFilterValue2)}
+                            className="bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 text-sm font-medium transition-colors shrink-0"
+                          >
+                            <Plus size={16} />
+                            <span className="hidden sm:inline">{editingFilterId ? 'Update' : 'Add'}</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
               )}
             </div>
@@ -519,7 +767,7 @@ const Catalog: React.FC = () => {
             <Filter size={48} className="mb-4 opacity-50" />
             <p className="text-lg">No tablets found matching your criteria.</p>
             <button 
-              onClick={() => { setSearch(''); setSelectedBrand('All'); setSelectedType('All'); }}
+              onClick={() => { setSearch(''); setFilters([]); }}
               className="mt-4 text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 underline"
             >
               Clear Filters
