@@ -86,6 +86,7 @@ const Catalog: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
+  const [showFieldMenu, setShowFieldMenu] = useState(false);
   const [newFilterField, setNewFilterField] = useState<keyof Tablet | ''>('');
   const [newFilterCondition, setNewFilterCondition] = useState<TextCondition | NumericCondition>('contains');
   const [newFilterValue, setNewFilterValue] = useState('');
@@ -197,6 +198,17 @@ const Catalog: React.FC = () => {
     setNewFilterValue(filter.value);
     setNewFilterValue2(filter.value2 || '');
     setEditingFilterId(filter.id);
+    setShowFieldMenu(false);
+  };
+
+  const selectField = (field: keyof Tablet) => {
+    setNewFilterField(field);
+    setEditingFilterId(null);
+    const conditions = getAvailableConditions(field);
+    if (conditions.length > 0) {
+      setNewFilterCondition(conditions[0].value);
+    }
+    setShowFieldMenu(false);
   };
 
   const getAvailableConditions = (field: keyof Tablet): Array<{ value: TextCondition | NumericCondition; label: string }> => {
@@ -422,67 +434,99 @@ const Catalog: React.FC = () => {
 
               {isFilteringExpanded && (
                   <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {/* Active Filters as Pills */}
-                    {filters.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {filters.map(filter => {
-                          const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
-                          const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
-                          return (
-                            <div
-                              key={filter.id}
-                              onDoubleClick={() => editFilter(filter)}
-                              className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
-                              title="Double-click to edit"
+                    {/* Active Filters as Pills with Add Field Button */}
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      {filters.map(filter => {
+                        const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
+                        const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
+                        return (
+                          <div
+                            key={filter.id}
+                            onDoubleClick={() => editFilter(filter)}
+                            className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+                            title="Double-click to edit"
+                          >
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
+                            <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
+                            <span className="font-semibold text-slate-900 dark:text-white">
+                              {filter.condition === 'range' && filter.value2 
+                                ? `${filter.value} - ${filter.value2}`
+                                : filter.value}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFilter(filter.id);
+                              }}
+                              className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                              title="Remove filter"
                             >
-                              <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
-                              <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
-                              <span className="font-semibold text-slate-900 dark:text-white">
-                                {filter.condition === 'range' && filter.value2 
-                                  ? `${filter.value} - ${filter.value2}`
-                                  : filter.value}
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeFilter(filter.id);
-                                }}
-                                className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                                title="Remove filter"
-                              >
-                                <X size={12} />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                              <X size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Add Field Button */}
+                      {!newFilterField && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowFieldMenu(!showFieldMenu)}
+                            className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            title="Add filter field"
+                          >
+                            <Plus size={12} />
+                            <span>Add Field</span>
+                          </button>
+                          
+                          {showFieldMenu && (
+                            <>
+                              <div 
+                                className="fixed inset-0 z-10" 
+                                onClick={() => setShowFieldMenu(false)}
+                              />
+                              <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-64 overflow-y-auto min-w-[200px]">
+                                {FILTERABLE_FIELDS.map(field => (
+                                  <button
+                                    key={field.key}
+                                    onClick={() => selectField(field.key)}
+                                    className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                  >
+                                    {field.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Selected Field Display */}
+                      {newFilterField && (
+                        <div className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {FILTERABLE_FIELDS.find(f => f.key === newFilterField)?.label}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setNewFilterField('');
+                              setNewFilterCondition('contains');
+                              setNewFilterValue('');
+                              setNewFilterValue2('');
+                              setEditingFilterId(null);
+                            }}
+                            className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                            title="Clear field"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Add Filter Controls */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <select
-                        value={newFilterField}
-                        onChange={(e) => {
-                          const field = e.target.value as keyof Tablet;
-                          setNewFilterField(field);
-                          if (!field) {
-                            setEditingFilterId(null);
-                          }
-                          const conditions = getAvailableConditions(field);
-                          if (conditions.length > 0) {
-                            setNewFilterCondition(conditions[0].value);
-                          }
-                        }}
-                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-primary-500 text-sm flex-1 min-w-0"
-                      >
-                        <option value="">Select field...</option>
-                        {FILTERABLE_FIELDS.map(field => (
-                          <option key={field.key} value={field.key}>{field.label}</option>
-                        ))}
-                      </select>
-
-                      {newFilterField && (
-                        <>
+                    {newFilterField && (
+                      <div className="flex flex-col sm:flex-row gap-2">
                           <select
                             value={newFilterCondition}
                             onChange={(e) => setNewFilterCondition(e.target.value as TextCondition | NumericCondition)}
@@ -528,9 +572,8 @@ const Catalog: React.FC = () => {
                             <Plus size={16} />
                             <span className="hidden sm:inline">{editingFilterId ? 'Update' : 'Add'}</span>
                           </button>
-                        </>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
               )}
             </div>
