@@ -480,285 +480,272 @@ const Catalog: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
 
           {/* Filtering Section */}
-          <div className={`xl:col-span-4 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isFilteringExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
-            <div
-              className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isFilteringExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
-              onClick={() => setIsFilteringExpanded(!isFilteringExpanded)}
-            >
-              <div className="flex items-center gap-2">
+          <div className="xl:col-span-4 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col p-2">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                 <Filter size={16} />
                 <h3 className="text-xs font-bold uppercase tracking-wider">Filtering</h3>
-                {filters.length > 0 && (
-                  <span className="bg-primary-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {filters.length}
-                  </span>
-                )}
               </div>
-              {isFilteringExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
 
-            {isFilteringExpanded && (
-              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                {/* Active Filters as Pills with Add Field Button */}
-                <div className="flex flex-wrap gap-1.5 items-center">
-                  {filters.map(filter => {
-                    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
-                    const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
-                    const isEditing = editingFilterPillId === filter.id;
-                    return (
-                      <div key={filter.id} className="relative">
-                        <div
-                          onDoubleClick={() => editFilter(filter)}
-                          className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
-                          title="Double-click to edit"
+              {/* Active Filters as Pills with Add Field Button */}
+              <div className="flex flex-wrap gap-1.5 items-center">
+                {filters.map(filter => {
+                  const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
+                  const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
+                  const isEditing = editingFilterPillId === filter.id;
+                  return (
+                    <div key={filter.id} className="relative">
+                      <div
+                        onDoubleClick={() => editFilter(filter)}
+                        className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+                        title="Double-click to edit"
+                      >
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
+                        <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {filter.condition === 'range' && filter.value2
+                            ? `${filter.value} - ${filter.value2}`
+                            : filter.value}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFilter(filter.id);
+                          }}
+                          className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                          title="Remove filter"
                         >
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
-                          <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {filter.condition === 'range' && filter.value2
-                              ? `${filter.value} - ${filter.value2}`
-                              : filter.value}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFilter(filter.id);
-                            }}
-                            className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                            title="Remove filter"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
+                          <X size={12} />
+                        </button>
+                      </div>
 
-                        {/* Edit Dropdown Menu */}
-                        {isEditing && (
-                          <>
-                            <div
-                              className="fixed inset-0 z-10"
-                              onClick={cancelPillEdit}
-                            />
-                            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-3 min-w-[280px] space-y-2">
-                              {/* Field Select */}
+                      {/* Edit Dropdown Menu */}
+                      {isEditing && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={cancelPillEdit}
+                          />
+                          <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-3 min-w-[280px] space-y-2">
+                            {/* Field Select */}
+                            <select
+                              value={editingPillField}
+                              onChange={(e) => {
+                                const field = e.target.value as keyof Tablet;
+                                setEditingPillField(field);
+                                const conditions = getAvailableConditions(field);
+                                if (conditions.length > 0) {
+                                  setEditingPillCondition(conditions[0].value);
+                                }
+                              }}
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                            >
+                              {FILTERABLE_FIELDS.map(field => (
+                                <option key={field.key} value={field.key}>{field.label}</option>
+                              ))}
+                            </select>
+
+                            {/* Condition Select */}
+                            {editingPillField && (
                               <select
-                                value={editingPillField}
-                                onChange={(e) => {
-                                  const field = e.target.value as keyof Tablet;
-                                  setEditingPillField(field);
-                                  const conditions = getAvailableConditions(field);
-                                  if (conditions.length > 0) {
-                                    setEditingPillCondition(conditions[0].value);
-                                  }
-                                }}
+                                value={editingPillCondition}
+                                onChange={(e) => setEditingPillCondition(e.target.value as TextCondition | NumericCondition)}
                                 className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                               >
-                                {FILTERABLE_FIELDS.map(field => (
-                                  <option key={field.key} value={field.key}>{field.label}</option>
+                                {getAvailableConditions(editingPillField).map(cond => (
+                                  <option key={cond.value} value={cond.value}>{cond.label}</option>
                                 ))}
                               </select>
+                            )}
 
-                              {/* Condition Select */}
-                              {editingPillField && (
-                                <select
-                                  value={editingPillCondition}
-                                  onChange={(e) => setEditingPillCondition(e.target.value as TextCondition | NumericCondition)}
-                                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                                >
-                                  {getAvailableConditions(editingPillField).map(cond => (
-                                    <option key={cond.value} value={cond.value}>{cond.label}</option>
-                                  ))}
-                                </select>
-                              )}
-
-                              {/* Value Input(s) */}
-                              {editingPillField && (
-                                <>
-                                  {editingPillCondition === 'range' ? (
-                                    <div className="flex gap-2">
-                                      <input
-                                        type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
-                                        value={editingPillValue}
-                                        onChange={(e) => setEditingPillValue(e.target.value)}
-                                        placeholder="Min"
-                                        className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                                      />
-                                      <input
-                                        type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
-                                        value={editingPillValue2}
-                                        onChange={(e) => setEditingPillValue2(e.target.value)}
-                                        placeholder="Max"
-                                        className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                                      />
-                                    </div>
-                                  ) : (
+                            {/* Value Input(s) */}
+                            {editingPillField && (
+                              <>
+                                {editingPillCondition === 'range' ? (
+                                  <div className="flex gap-2">
                                     <input
                                       type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
                                       value={editingPillValue}
                                       onChange={(e) => setEditingPillValue(e.target.value)}
-                                      placeholder="Value"
-                                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                                      placeholder="Min"
+                                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                                     />
-                                  )}
-                                </>
-                              )}
-
-                              {/* Action Buttons */}
-                              <div className="flex gap-2 pt-1">
-                                <button
-                                  onClick={savePillEdit}
-                                  disabled={!editingPillValue || (editingPillCondition === 'range' && !editingPillValue2)}
-                                  className="flex-1 bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={cancelPillEdit}
-                                  className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* Add Field Button */}
-                  {editingFilterPillId !== 'new' && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowFieldMenu(!showFieldMenu)}
-                        className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                        title="Add filter field"
-                      >
-                        <Plus size={12} />
-                        <span>Add Field</span>
-                      </button>
-
-                      {showFieldMenu && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setShowFieldMenu(false)}
-                          />
-                          <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-64 overflow-y-auto min-w-[200px]">
-                            {FILTERABLE_FIELDS.map(field => (
-                              <button
-                                key={field.key}
-                                onClick={() => selectField(field.key)}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
-                              >
-                                {field.label}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Create Dropdown Menu (only for new filters) */}
-                  {editingFilterPillId === 'new' && (
-                    <div className="relative">
-                      <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-primary-400 dark:border-primary-500 px-2 py-1 rounded-lg text-xs font-medium text-primary-600 dark:text-primary-400">
-                        <Plus size={12} />
-                        <span>New Filter</span>
-                      </div>
-
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={cancelPillEdit}
-                        />
-                        <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-3 min-w-[280px] space-y-2">
-                          {/* Field Select */}
-                          <select
-                            value={editingPillField}
-                            onChange={(e) => {
-                              const field = e.target.value as keyof Tablet;
-                              setEditingPillField(field);
-                              const conditions = getAvailableConditions(field);
-                              if (conditions.length > 0) {
-                                setEditingPillCondition(conditions[0].value);
-                              }
-                            }}
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                          >
-                            {FILTERABLE_FIELDS.map(field => (
-                              <option key={field.key} value={field.key}>{field.label}</option>
-                            ))}
-                          </select>
-
-                          {/* Condition Select */}
-                          {editingPillField && (
-                            <select
-                              value={editingPillCondition}
-                              onChange={(e) => setEditingPillCondition(e.target.value as TextCondition | NumericCondition)}
-                              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                            >
-                              {getAvailableConditions(editingPillField).map(cond => (
-                                <option key={cond.value} value={cond.value}>{cond.label}</option>
-                              ))}
-                            </select>
-                          )}
-
-                          {/* Value Input(s) */}
-                          {editingPillField && (
-                            <>
-                              {editingPillCondition === 'range' ? (
-                                <div className="flex gap-2">
+                                    <input
+                                      type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
+                                      value={editingPillValue2}
+                                      onChange={(e) => setEditingPillValue2(e.target.value)}
+                                      placeholder="Max"
+                                      className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                                    />
+                                  </div>
+                                ) : (
                                   <input
                                     type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
                                     value={editingPillValue}
                                     onChange={(e) => setEditingPillValue(e.target.value)}
-                                    placeholder="Min"
-                                    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                                    placeholder="Value"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                                   />
-                                  <input
-                                    type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
-                                    value={editingPillValue2}
-                                    onChange={(e) => setEditingPillValue2(e.target.value)}
-                                    placeholder="Max"
-                                    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
-                                  />
-                                </div>
-                              ) : (
+                                )}
+                              </>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 pt-1">
+                              <button
+                                onClick={savePillEdit}
+                                disabled={!editingPillValue || (editingPillCondition === 'range' && !editingPillValue2)}
+                                className="flex-1 bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={cancelPillEdit}
+                                className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Add Field Button */}
+                {editingFilterPillId !== 'new' && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowFieldMenu(!showFieldMenu)}
+                      className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      title="Add filter field"
+                    >
+                      <Plus size={12} />
+                      <span>Add Field</span>
+                    </button>
+
+                    {showFieldMenu && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setShowFieldMenu(false)}
+                        />
+                        <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-64 overflow-y-auto min-w-[200px]">
+                          {FILTERABLE_FIELDS.map(field => (
+                            <button
+                              key={field.key}
+                              onClick={() => selectField(field.key)}
+                              className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            >
+                              {field.label}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Create Dropdown Menu (only for new filters) */}
+                {editingFilterPillId === 'new' && (
+                  <div className="relative">
+                    <div className="inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-primary-400 dark:border-primary-500 px-2 py-1 rounded-lg text-xs font-medium text-primary-600 dark:text-primary-400">
+                      <Plus size={12} />
+                      <span>New Filter</span>
+                    </div>
+
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={cancelPillEdit}
+                      />
+                      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-3 min-w-[280px] space-y-2">
+                        {/* Field Select */}
+                        <select
+                          value={editingPillField}
+                          onChange={(e) => {
+                            const field = e.target.value as keyof Tablet;
+                            setEditingPillField(field);
+                            const conditions = getAvailableConditions(field);
+                            if (conditions.length > 0) {
+                              setEditingPillCondition(conditions[0].value);
+                            }
+                          }}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                        >
+                          {FILTERABLE_FIELDS.map(field => (
+                            <option key={field.key} value={field.key}>{field.label}</option>
+                          ))}
+                        </select>
+
+                        {/* Condition Select */}
+                        {editingPillField && (
+                          <select
+                            value={editingPillCondition}
+                            onChange={(e) => setEditingPillCondition(e.target.value as TextCondition | NumericCondition)}
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                          >
+                            {getAvailableConditions(editingPillField).map(cond => (
+                              <option key={cond.value} value={cond.value}>{cond.label}</option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* Value Input(s) */}
+                        {editingPillField && (
+                          <>
+                            {editingPillCondition === 'range' ? (
+                              <div className="flex gap-2">
                                 <input
                                   type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
                                   value={editingPillValue}
                                   onChange={(e) => setEditingPillValue(e.target.value)}
-                                  placeholder="Value"
-                                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                                  placeholder="Min"
+                                  className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                                 />
-                              )}
-                            </>
-                          )}
+                                <input
+                                  type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
+                                  value={editingPillValue2}
+                                  onChange={(e) => setEditingPillValue2(e.target.value)}
+                                  placeholder="Max"
+                                  className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                                />
+                              </div>
+                            ) : (
+                              <input
+                                type={getFieldType(editingPillField) === 'numeric' ? 'number' : 'text'}
+                                value={editingPillValue}
+                                onChange={(e) => setEditingPillValue(e.target.value)}
+                                placeholder="Value"
+                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
+                              />
+                            )}
+                          </>
+                        )}
 
-                          {/* Action Buttons */}
-                          <div className="flex gap-2 pt-1">
-                            <button
-                              onClick={savePillEdit}
-                              disabled={!editingPillValue || (editingPillCondition === 'range' && !editingPillValue2)}
-                              className="flex-1 bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                            >
-                              Add
-                            </button>
-                            <button
-                              onClick={cancelPillEdit}
-                              className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            onClick={savePillEdit}
+                            disabled={!editingPillValue || (editingPillCondition === 'range' && !editingPillValue2)}
+                            className="flex-1 bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 disabled:dark:bg-slate-700 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                          >
+                            Add
+                          </button>
+                          <button
+                            onClick={cancelPillEdit}
+                            className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                          >
+                            Cancel
+                          </button>
                         </div>
-                      </>
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    </>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Sorting Section */}
