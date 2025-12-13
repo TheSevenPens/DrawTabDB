@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { TABLET_FIELDS } from '../tabletFields';
 import { Tablet } from '../types';
 import { prepareTabletForExport } from '../contexts/DataContext';
 import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson } from 'lucide-react';
@@ -16,7 +17,6 @@ interface TabletDetailsDialogProps {
   hasNext?: boolean;
 }
 
-import { TABLET_FIELDS } from '../tabletFields';
 
 // Predefined Options
 const BRAND_OPTIONS = ["WACOM", "HUION", "XPPEN", "XENCELABS", "UGEE", "SAMSUNG", "APPLE"];
@@ -373,7 +373,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                         className={`space-y-1 group ${isLink || isInternalId ? 'col-span-full md:col-span-2' : ''}`}
                       >
                         <label className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
-                          {field}
+                          {TABLET_FIELDS.find(f => f.fieldName === field)?.DisplayName || field}
                           {isReadOnly && <span className="ml-1 text-[9px] text-slate-400 dark:text-slate-600">(Calculated/System)</span>}
                         </label>
 

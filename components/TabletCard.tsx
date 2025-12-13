@@ -1,5 +1,6 @@
 import React from 'react';
 import { Tablet } from '../types';
+import { TABLET_FIELDS } from '../tabletFields';
 import { ExternalLink, MoreHorizontal, Copy, Square, CheckSquare } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 
@@ -45,35 +46,42 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
 
   const getColumnContent = (colId: string) => {
     const settings = columnSettings[colId] || {};
-    const defaultLabel = colId; // Fallback
 
-    // Helper to get final label
-    const getLabel = (base: string) => settings.customLabel || base;
+    // Helper to get centralized display name
+    const getFieldDisplayName = (key: string) => TABLET_FIELDS.find(f => f.fieldName === key)?.DisplayName || key;
+
+    // Helper to get final label (checking custom override first)
+    const getLabel = (fieldKey: string, suffix: string = '') => {
+      if (settings.customLabel) return settings.customLabel;
+      const base = getFieldDisplayName(fieldKey);
+      return suffix ? `${base} ${suffix}` : base;
+    };
+
     const unit = settings.unit;
 
     switch (colId) {
       case 'ModelFamily':
-        return { label: getLabel('Family'), value: tablet.ModelFamily || '-' };
+        return { label: getLabel('ModelFamily'), value: tablet.ModelFamily || '-' };
 
       case 'ModelLaunchYear':
-        return { label: getLabel('Released'), value: tablet.ModelLaunchYear || '-' };
+        return { label: getLabel('ModelLaunchYear'), value: tablet.ModelLaunchYear || '-' };
 
       case 'DigitizerDiagonal':
         const diagVal = tablet.DigitizerDiagonal ? parseFloat(tablet.DigitizerDiagonal) : null;
-        if (!diagVal || isNaN(diagVal)) return { label: getLabel('Diagonal'), value: '-' };
+        if (!diagVal || isNaN(diagVal)) return { label: getLabel('DigitizerDiagonal'), value: '-' };
 
         const effectiveDiagUnit = unit || 'in';
         const displayVal = effectiveDiagUnit === 'in'
           ? `${(diagVal / 25.4).toFixed(1)}″`
           : `${Math.round(diagVal)}mm`;
-        return { label: getLabel(`Diagonal (${effectiveDiagUnit})`), value: displayVal };
+        return { label: getLabel('DigitizerDiagonal', `(${effectiveDiagUnit})`), value: displayVal };
 
       case 'ModelIncludedPen':
-        return { label: getLabel('Pen'), value: tablet.ModelIncludedPen || 'N/A' };
+        return { label: getLabel('ModelIncludedPen'), value: tablet.ModelIncludedPen || 'N/A' };
 
       case 'DigitizerDimensions':
         const raw = tablet.DigitizerDimensions;
-        if (!raw) return { label: getLabel('Active Area'), value: '-' };
+        if (!raw) return { label: getLabel('DigitizerDimensions'), value: '-' };
 
         const effectiveAreaUnit = unit || 'mm';
 
@@ -86,20 +94,20 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
             const h = parseFloat(match[2]);
             const wIn = (w / 25.4).toFixed(1);
             const hIn = (h / 25.4).toFixed(1);
-            return { label: getLabel('Active Area (in)'), value: `${wIn}″ x ${hIn}″` };
+            return { label: getLabel('DigitizerDimensions', '(in)'), value: `${wIn}″ x ${hIn}″` };
           }
         }
-        return { label: getLabel(`Active Area (${effectiveAreaUnit})`), value: raw };
+        return { label: getLabel('DigitizerDimensions', `(${effectiveAreaUnit})`), value: raw };
 
       case 'AspectRatio':
-        if (!tablet.DigitizerDimensions) return { label: getLabel('Aspect Ratio'), value: '-' };
+        if (!tablet.DigitizerDimensions) return { label: getLabel('AspectRatio'), value: '-' };
         // Matches "293 x 165" or "293.7 x 165.2", allowing spaces
         const dimMatch = tablet.DigitizerDimensions.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
 
         if (dimMatch) {
           const w = parseFloat(dimMatch[1]);
           const h = parseFloat(dimMatch[2]);
-          if (h === 0) return { label: getLabel('Aspect Ratio'), value: '-' };
+          if (h === 0) return { label: getLabel('AspectRatio'), value: '-' };
 
           const ratio = w / h;
           // Tolerance for standard ratios
@@ -113,22 +121,22 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
           else if (Math.abs(ratio - 1) < tol) arDisplay = '1:1';
           else if (Math.abs(ratio - (21 / 9)) < tol) arDisplay = '21:9';
 
-          return { label: getLabel('Aspect Ratio'), value: arDisplay };
+          return { label: getLabel('AspectRatio'), value: arDisplay };
         }
-        return { label: getLabel('Aspect Ratio'), value: '-' };
+        return { label: getLabel('AspectRatio'), value: '-' };
 
       case 'DigitizerPressureLevels':
-        return { label: getLabel('Pressure'), value: tablet.DigitizerPressureLevels ? `${tablet.DigitizerPressureLevels} Lvls` : '-' };
+        return { label: getLabel('DigitizerPressureLevels'), value: tablet.DigitizerPressureLevels ? `${tablet.DigitizerPressureLevels} Lvls` : '-' };
 
       case 'DisplayResolution':
-        return { label: getLabel('Display Res'), value: isDisplay ? (tablet.DisplayResolution || 'N/A') : '-' };
+        return { label: getLabel('DisplayResolution'), value: isDisplay ? (tablet.DisplayResolution || 'N/A') : '-' };
 
       case 'DisplayPixelDensity':
-        return { label: getLabel('Pixel Density'), value: tablet.DisplayPixelDensity ? `${tablet.DisplayPixelDensity} PPI` : '-' };
+        return { label: getLabel('DisplayPixelDensity'), value: tablet.DisplayPixelDensity ? `${tablet.DisplayPixelDensity} PPI` : '-' };
 
       case 'DigitizerResolution':
         const resVal = tablet.DigitizerResolution ? parseFloat(tablet.DigitizerResolution) : null;
-        if (!resVal || isNaN(resVal)) return { label: getLabel('Digitizer Res'), value: '-' };
+        if (!resVal || isNaN(resVal)) return { label: getLabel('DigitizerResolution'), value: '-' };
 
         const effectiveResUnit = unit || 'lpi';
 
@@ -136,11 +144,11 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
         // To show LPI, we multiply by 25.4 (1 mm = 0.03937 inch)
         if (effectiveResUnit === 'lpi') {
           const lpi = Math.round(resVal * 25.4);
-          return { label: getLabel('Digitizer Res (LPI)'), value: `${lpi} LPI` };
+          return { label: getLabel('DigitizerResolution', '(LPI)'), value: `${lpi} LPI` };
         }
 
         // Return raw LPmm
-        return { label: getLabel('Digitizer Res (LPmm)'), value: `${resVal} LPmm` };
+        return { label: getLabel('DigitizerResolution', '(LPmm)'), value: `${resVal} LPmm` };
 
       case 'PhysicalWeight':
         const weight = tablet.PhysicalWeight ? parseFloat(tablet.PhysicalWeight) : null;
@@ -148,10 +156,10 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
         const weightVal = weight
           ? (weight > 100 ? `${(weight / 1000).toFixed(2)}kg` : `${weight}g`) // Simple heuristic
           : (tablet.PhysicalWeight || '-');
-        return { label: getLabel('Weight'), value: weightVal };
+        return { label: getLabel('PhysicalWeight'), value: weightVal };
 
       case 'DigitizerSupportsTouch':
-        return { label: getLabel('Touch'), value: tablet.DigitizerSupportsTouch || '-' };
+        return { label: getLabel('DigitizerSupportsTouch'), value: tablet.DigitizerSupportsTouch || '-' };
 
       default:
         // Attempt to find a default label from column ID if possible, otherwise use ID

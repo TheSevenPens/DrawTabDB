@@ -3,6 +3,7 @@ import { useData } from '../contexts/DataContext';
 import TabletCard from '../components/TabletCard';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 import { Tablet } from '../types';
+import { TABLET_FIELDS } from '../tabletFields';
 import { Search, Filter, ArrowUp, ArrowDown, Database, Settings, ChevronUp, ChevronDown, X, Plus, ArrowUpDown, GitCompare } from 'lucide-react';
 
 type FilterFieldType = 'text' | 'numeric';
@@ -17,28 +18,25 @@ interface Filter {
   value2?: string; // For range condition
 }
 
-const FILTERABLE_FIELDS: Array<{
-  key: keyof Tablet;
-  label: string;
-  type: FilterFieldType;
-}> = [
-    { key: 'ModelBrand', label: 'Brand', type: 'text' },
-    { key: 'ModelType', label: 'Type', type: 'text' },
-    { key: 'ModelName', label: 'Model Name', type: 'text' },
-    { key: 'ModelId', label: 'Model ID', type: 'text' },
-    { key: 'ModelFamily', label: 'Family', type: 'text' },
-    { key: 'ModelStatus', label: 'Status', type: 'text' },
-    { key: 'ModelAudience', label: 'Audience', type: 'text' },
-    { key: 'ModelLaunchYear', label: 'Launch Year', type: 'numeric' },
-    { key: 'ModelAge', label: 'Age', type: 'numeric' },
-    { key: 'DigitizerDiagonal', label: 'Diagonal Size', type: 'numeric' },
-    { key: 'DigitizerPressureLevels', label: 'Pressure Levels', type: 'numeric' },
-    { key: 'DigitizerReportRate', label: 'Report Rate', type: 'numeric' },
-    { key: 'PhysicalWeight', label: 'Weight', type: 'numeric' },
-    { key: 'DisplayPixelDensity', label: 'Pixel Density', type: 'numeric' },
-    { key: 'AspectRatio', label: 'Aspect Ratio', type: 'numeric' },
-    { key: 'DigitizerSupportsTouch', label: 'Touch Support', type: 'text' },
-  ];
+const getFieldLabel = (key: string) => TABLET_FIELDS.find(f => f.fieldName === key)?.DisplayName || key;
+
+const NUMERIC_FIELDS = new Set<keyof Tablet>([
+  'ModelLaunchYear',
+  'ModelAge',
+  'DigitizerDiagonal',
+  'DigitizerPressureLevels',
+  'DigitizerReportRate',
+  'PhysicalWeight',
+  'DisplayPixelDensity',
+  'AspectRatio',
+  'DigitizerResolution',
+  'DisplaySize',
+  'DisplayRefreshRate',
+  'DisplayResponseTime',
+  'DisplayBrightness',
+  'DigitizerTilt',
+  'DigitizerMaxHover'
+]);
 import { useNavigate } from 'react-router-dom';
 
 const parseSearchQuery = (query: string): string[] => {
@@ -55,19 +53,16 @@ const parseSearchQuery = (query: string): string[] => {
   return terms;
 };
 
-const AVAILABLE_COLUMNS = [
-  { id: 'ModelFamily', label: 'Family' },
-  { id: 'ModelLaunchYear', label: 'Released Year' },
-  { id: 'DigitizerDiagonal', label: 'Diagonal Size' },
-  { id: 'ModelIncludedPen', label: 'Included Pen' },
-  { id: 'DigitizerDimensions', label: 'Active Area' },
-  { id: 'AspectRatio', label: 'Aspect Ratio' },
-  { id: 'DigitizerPressureLevels', label: 'Pressure Levels' },
-  { id: "DisplayPixelDensity", label: "PPI" },
-  { id: 'DigitizerResolution', label: 'Digitizer Res' },
-  { id: 'PhysicalWeight', label: 'Weight' },
-  { id: 'DigitizerSupportsTouch', label: 'Touch Support' }
-];
+// Shared definition for all field selection dropdowns
+const ALL_FIELD_OPTIONS = TABLET_FIELDS
+  .filter(f => !f.isSystem)
+  .map(f => ({
+    value: f.fieldName,
+    label: f.DisplayName
+  }))
+  .sort((a, b) => a.label.localeCompare(b.label));
+
+const AVAILABLE_COLUMNS = ALL_FIELD_OPTIONS.map(o => ({ id: o.value, label: o.label }));
 
 const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
   ModelId: '',
@@ -207,8 +202,7 @@ const Catalog: React.FC = () => {
   const addFilter = () => {
     if (!newFilterField || !newFilterValue) return;
 
-    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === newFilterField);
-    if (!fieldConfig) return;
+    if (!ALL_FIELD_OPTIONS.find(f => f.value === newFilterField)) return;
 
     if (editingFilterId) {
       // Update existing filter in place
@@ -311,10 +305,10 @@ const Catalog: React.FC = () => {
   };
 
   const getAvailableConditions = (field: keyof Tablet): Array<{ value: TextCondition | NumericCondition; label: string }> => {
-    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === field);
-    if (!fieldConfig) return [];
+    // If field is not found in ALL_FIELD_OPTIONS, it might be invalid, but we'll try to determine type anyway.
+    const type = getFieldType(field);
 
-    if (fieldConfig.type === 'text') {
+    if (type === 'text') {
       return [
         { value: 'equals', label: 'Equals' },
         { value: 'contains', label: 'Contains' },
@@ -333,20 +327,12 @@ const Catalog: React.FC = () => {
     }
   };
 
+
   const getFieldType = (field: keyof Tablet): FilterFieldType => {
-    const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === field);
-    return fieldConfig?.type || 'text';
+    return NUMERIC_FIELDS.has(field) ? 'numeric' : 'text';
   };
 
-  const sortOptions = [
-    { label: 'Name', value: 'ModelName' },
-    { label: 'Brand', value: 'ModelBrand' },
-    { label: 'Family', value: 'ModelFamily' },
-    { label: 'Year', value: 'ModelLaunchYear' },
-    { label: 'Age', value: 'ModelAge' },
-    { label: 'Diagonal Size', value: 'DigitizerDiagonal' },
-    { label: 'Aspect Ratio', value: 'AspectRatio' },
-  ];
+  const sortOptions = ALL_FIELD_OPTIONS;
 
   const searchTerms = useMemo(() => parseSearchQuery(search), [search]);
 
@@ -526,7 +512,7 @@ const Catalog: React.FC = () => {
               {/* Active Filters as Pills with Add Field Button */}
               <div className="flex flex-wrap gap-1.5 items-center">
                 {filters.map(filter => {
-                  const fieldConfig = FILTERABLE_FIELDS.find(f => f.key === filter.field);
+                  const fieldOption = ALL_FIELD_OPTIONS.find(f => f.value === filter.field);
                   const conditionLabel = getAvailableConditions(filter.field).find(c => c.value === filter.condition)?.label || filter.condition;
                   const isEditing = editingFilterPillId === filter.id;
                   return (
@@ -536,11 +522,11 @@ const Catalog: React.FC = () => {
                         className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg text-xs cursor-pointer hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
                         title="Double-click to edit"
                       >
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{fieldConfig?.label}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{fieldOption?.label || filter.field}</span>
                         <span className="text-slate-500 dark:text-slate-400">{conditionLabel}</span>
                         <span className="font-semibold text-slate-900 dark:text-white">
                           {filter.condition === 'range' && filter.value2
-                            ? `${filter.value} - ${filter.value2}`
+                            ? `${filter.value} - ${filter.value2} `
                             : filter.value}
                         </span>
                         <button
@@ -576,8 +562,8 @@ const Catalog: React.FC = () => {
                               }}
                               className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                             >
-                              {FILTERABLE_FIELDS.map(field => (
-                                <option key={field.key} value={field.key}>{field.label}</option>
+                              {ALL_FIELD_OPTIONS.map(field => (
+                                <option key={field.value} value={field.value}>{field.label}</option>
                               ))}
                             </select>
 
@@ -666,14 +652,15 @@ const Catalog: React.FC = () => {
                           className="fixed inset-0 z-10"
                           onClick={() => setShowFieldMenu(false)}
                         />
-                        <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-64 overflow-y-auto min-w-[200px]">
-                          {FILTERABLE_FIELDS.map(field => (
+                        <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[200px] max-h-60 overflow-y-auto flex flex-col gap-0.5">
+                          {ALL_FIELD_OPTIONS.map(field => (
                             <button
-                              key={field.key}
-                              onClick={() => selectField(field.key)}
-                              className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                              key={field.value}
+                              onClick={() => selectField(field.value as keyof Tablet)}
+                              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
                             >
                               {field.label}
+                              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
                           ))}
                         </div>
@@ -709,8 +696,8 @@ const Catalog: React.FC = () => {
                           }}
                           className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1.5 rounded text-xs focus:outline-none focus:border-primary-500"
                         >
-                          {FILTERABLE_FIELDS.map(field => (
-                            <option key={field.key} value={field.key}>{field.label}</option>
+                          {ALL_FIELD_OPTIONS.map(field => (
+                            <option key={field.value} value={field.value}>{field.label}</option>
                           ))}
                         </select>
 
@@ -896,7 +883,7 @@ const Catalog: React.FC = () => {
                         ${isOpen
                           ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-300 dark:border-primary-700 text-primary-800 dark:text-primary-200'
                           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-500'
-                        }`}
+                        } `}
                     >
                       {currentLabel}
 
@@ -948,9 +935,9 @@ const Catalog: React.FC = () => {
                                   className={`w-6 h-6 rounded-full border-2 transition-all ${(settings.textColor === color.value) || (!settings.textColor && color.label === 'Default')
                                     ? 'border-slate-400 dark:border-slate-500 scale-110 shadow-sm'
                                     : 'border-transparent hover:scale-110'
-                                    }`}
+                                    } `}
                                 >
-                                  <div className={`w-full h-full rounded-full ${color.value.replace('text-', 'bg-').split(' ')[0]}`} />
+                                  <div className={`w-full h-full rounded-full ${color.value.replace('text-', 'bg-').split(' ')[0]} `} />
                                 </button>
                               ))}
                             </div>
@@ -965,11 +952,11 @@ const Catalog: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'in' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >IN</button>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'mm' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >MM</button>
                                   </>
                                 )}
@@ -977,11 +964,11 @@ const Catalog: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'mm' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >MM</button>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'in' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >IN</button>
                                   </>
                                 )}
@@ -989,11 +976,11 @@ const Catalog: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'lpi' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'lpi' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'lpi' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >LPI</button>
                                     <button
                                       onClick={() => updateColumnSetting(colId, { unit: 'lpmm' })}
-                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'lpmm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'lpmm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'} `}
                                     >LPmm</button>
                                   </>
                                 )}
