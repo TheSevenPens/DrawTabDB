@@ -761,21 +761,21 @@ const Catalog: React.FC = () => {
             </div>
 
             {isSortingExpanded && (
-              <div className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value)}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-3 py-2 rounded-xl focus:outline-none focus:border-primary-500 flex-1 min-w-0"
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1 rounded-lg text-xs focus:outline-none focus:border-primary-500 flex-1 min-w-0"
                 >
                   {sortOptions.map(opt => <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>)}
                 </select>
 
                 <button
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-xl focus:outline-none hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0"
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded-lg focus:outline-none hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0"
                   title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
                 >
-                  {sortOrder === 'asc' ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
+                  {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                 </button>
               </div>
             )}
