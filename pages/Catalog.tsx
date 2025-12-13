@@ -98,8 +98,18 @@ const Catalog: React.FC = () => {
   const [editingPillCondition, setEditingPillCondition] = useState<TextCondition | NumericCondition>('contains');
   const [editingPillValue, setEditingPillValue] = useState('');
   const [editingPillValue2, setEditingPillValue2] = useState('');
-  const [sortField, setSortField] = useState('ModelName');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+
+  // Sorting State
+  type SortCriterion = {
+    id: string;
+    field: string;
+    order: 'asc' | 'desc';
+  };
+  const [sortCriteria, setSortCriteria] = useState<SortCriterion[]>([
+    { id: 'default', field: 'ModelName', order: 'asc' }
+  ]);
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   // Create New Tablet State
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -362,51 +372,55 @@ const Catalog: React.FC = () => {
           }
         }
       });
-
       return matchesSearch && matchesFilters;
     });
 
     return filtered.sort((a, b) => {
-      let valA: string | number = '';
-      let valB: string | number = '';
+      for (const criterion of sortCriteria) {
+        let valA: string | number | number = '';
+        let valB: string | number | number = '';
+        const field = criterion.field;
 
-      switch (sortField) {
-        case 'LaunchYear':
-          valA = a.LaunchYear ? parseInt(a.LaunchYear) : -1;
-          valB = b.LaunchYear ? parseInt(b.LaunchYear) : -1;
-          break;
-        case 'Age':
-          valA = a.Age ? parseInt(a.Age) : -1;
-          valB = b.Age ? parseInt(b.Age) : -1;
-          break;
-        case 'DigitizerDiag':
-          valA = a.DigitizerDiag ? parseFloat(a.DigitizerDiag) : -1;
-          valB = b.DigitizerDiag ? parseFloat(b.DigitizerDiag) : -1;
-          break;
-        case 'AspectRatio':
-          const getRatio = (size?: string) => {
-            if (!size) return -1;
-            const match = size.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
-            if (match) {
-              const w = parseFloat(match[1]);
-              const h = parseFloat(match[2]);
-              return h > 0 ? w / h : -1;
-            }
-            return -1;
-          };
-          valA = getRatio(a.DigitizerSize);
-          valB = getRatio(b.DigitizerSize);
-          break;
-        default:
-          valA = (a[sortField as keyof typeof a] || '').toString().toLowerCase();
-          valB = (b[sortField as keyof typeof b] || '').toString().toLowerCase();
+        switch (field) {
+          case 'LaunchYear':
+            valA = a.LaunchYear ? parseInt(a.LaunchYear) : -1;
+            valB = b.LaunchYear ? parseInt(b.LaunchYear) : -1;
+            break;
+          case 'Age':
+            valA = a.Age ? parseInt(a.Age) : -1;
+            valB = b.Age ? parseInt(b.Age) : -1;
+            break;
+          case 'DigitizerDiag':
+            valA = a.DigitizerDiag ? parseFloat(a.DigitizerDiag) : -1;
+            valB = b.DigitizerDiag ? parseFloat(b.DigitizerDiag) : -1;
+            break;
+          case 'AspectRatio':
+            const getRatio = (size?: string) => {
+              if (!size) return -1;
+              const match = size.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
+              if (match) {
+                const w = parseFloat(match[1]);
+                const h = parseFloat(match[2]);
+                return h > 0 ? w / h : -1;
+              }
+              return -1;
+            };
+            valA = getRatio(a.DigitizerSize);
+            valB = getRatio(b.DigitizerSize);
+            break;
+          default:
+            // Default string comparison for other fields
+            // Use keyof Tablet assertion safely
+            valA = (a[field as keyof Tablet] || '').toString().toLowerCase();
+            valB = (b[field as keyof Tablet] || '').toString().toLowerCase();
+        }
+
+        if (valA < valB) return criterion.order === 'asc' ? -1 : 1;
+        if (valA > valB) return criterion.order === 'asc' ? 1 : -1;
       }
-
-      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [searchTerms, filters, tablets, sortField, sortOrder]);
+  }, [searchTerms, filters, tablets, sortCriteria]);
 
   // Derived state for details navigation
   const detailIndex = useMemo(() => {
@@ -761,22 +775,78 @@ const Catalog: React.FC = () => {
             </div>
 
             {isSortingExpanded && (
-              <div className="flex gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                <select
-                  value={sortField}
-                  onChange={(e) => setSortField(e.target.value)}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white px-2 py-1 rounded-lg text-xs focus:outline-none focus:border-primary-500 flex-1 min-w-0"
-                >
-                  {sortOptions.map(opt => <option key={opt.value} value={opt.value}>Sort: {opt.label}</option>)}
-                </select>
+              <div className="flex flex-wrap gap-1.5 items-center animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Active Sort Criteria Pills */}
+                {sortCriteria.map((criterion, index) => {
+                  const optionLabel = sortOptions.find(opt => opt.value === criterion.field)?.label || criterion.field;
+                  return (
+                    <div
+                      key={criterion.id}
+                      className="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                    >
+                      <button
+                        onClick={() => {
+                          // Toggle order
+                          setSortCriteria(prev => prev.map(c => c.id === criterion.id ? { ...c, order: c.order === 'asc' ? 'desc' : 'asc' } : c));
+                        }}
+                        className="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                        title="Toggle Order"
+                      >
+                        {optionLabel}
+                        {criterion.order === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                      </button>
 
-                <button
-                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded-lg focus:outline-none hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0"
-                  title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-                >
-                  {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-                </button>
+                      <button
+                        onClick={() => {
+                          setSortCriteria(prev => prev.filter(c => c.id !== criterion.id));
+                        }}
+                        className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-1"
+                        title="Remove Sort"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {/* Add Sort Button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSortMenu(!showSortMenu)}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-1.5"
+                  >
+                    <Plus size={12} />
+                    Add Sort
+                  </button>
+
+                  {/* Add Sort Menu */}
+                  {showSortMenu && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+                      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[180px] max-h-60 overflow-y-auto flex flex-col gap-0.5">
+                        {sortOptions.filter(opt => !sortCriteria.find(sc => sc.field === opt.value)).length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-slate-400 text-center italic">
+                            All sort options added
+                          </div>
+                        ) : (
+                          sortOptions.filter(opt => !sortCriteria.find(sc => sc.field === opt.value)).map(opt => (
+                            <button
+                              key={opt.value}
+                              onClick={() => {
+                                setSortCriteria(prev => [...prev, { id: Date.now().toString(), field: opt.value, order: 'asc' }]);
+                                setShowSortMenu(false);
+                              }}
+                              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
+                            >
+                              {opt.label}
+                              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
