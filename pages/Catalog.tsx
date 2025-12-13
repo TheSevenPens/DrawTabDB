@@ -102,11 +102,12 @@ const FieldSelectionMenu: React.FC<FieldMenuProps> = ({ onClose, onSelect, optio
     <>
       <div className="fixed inset-0 z-10" onClick={onClose} />
       <div className={`
-        absolute top-full z-20 mt-1
         bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 
         rounded-xl shadow-xl p-3 animate-in fade-in zoom-in-95 duration-100
         max-h-[80vh] overflow-y-auto
-        ${hasMultipleCategories ? 'flex gap-4 left-0' : 'flex flex-col min-w-[200px] left-0'}
+        ${hasMultipleCategories
+          ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4'
+          : 'absolute top-full left-0 z-20 mt-1 flex flex-col min-w-[200px]'}
       `}
         style={hasMultipleCategories ? { width: 'max-content', maxWidth: '90vw' } : {}}
       >
