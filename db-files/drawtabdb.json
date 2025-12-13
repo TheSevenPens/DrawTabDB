@@ -1755,7 +1755,6 @@
       "_id": "98f59bc7-4ba6-49f0-b3b2-4acafcffe64c"
     },
     {
-      "DevWeightInclStand": "NO",
       "DigitizerDimensions": "597 x 336",
       "DigitizerPressureLevels": "2048",
       "DigitizerTilt": "60",
@@ -1778,6 +1777,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "770.00 x 465.00 x 54.40",
       "PhysicalWeight": "9000",
+      "PhysicalWeightInclStand": "NO",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "d8b80e4e-6210-418c-a611-cfc63cfc5635"
@@ -2104,7 +2104,6 @@
       "_id": "480759f8-807e-4e21-ab91-1e00e5bcc12c"
     },
     {
-      "DevWeightInclStand": "NO",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerDimensions": "350 x 197",
@@ -2134,12 +2133,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "421.20 x 236.81 x 12.62",
       "PhysicalWeight": "1245",
+      "PhysicalWeightInclStand": "NO",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "75b9e4de-b543-41c8-9f07-7f90329d812d"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerDimensions": "477 x 268",
@@ -2170,12 +2169,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "546.00 x 323.00 x 19.00",
       "PhysicalWeight": "3900",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "737d63f7-a797-4ce2-b813-14c00d2be899"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerDimensions": "477 x 268",
@@ -2206,12 +2205,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "546.00 x 323.00 x 19.00",
       "PhysicalWeight": "2900",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "f0bf0b5f-dc6e-47da-826d-3586590dc939"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerMaxHover": "10",
@@ -2240,12 +2239,12 @@
       "ModelProductLink": "https://www.huion.com/products/pen_display/Kamvas/kamvas-24.html",
       "ModelType": "PENDISPLAY",
       "PhysicalWeight": "5600",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "e0166391-4204-4fbf-8a33-932c643dc733"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerDimensions": "527 x 296",
@@ -2276,6 +2275,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "604.20 x 358.00 x 28.30",
       "PhysicalWeight": "5600",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "37a6dd3c-5e82-44c9-9cef-c08aee9dcbfb"
@@ -2559,7 +2559,6 @@
       "_id": "056de896-c23f-4c31-b057-8fa49fe759ba"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "435 x 239",
@@ -2590,12 +2589,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "552.20 x 315.30 x 21.00",
       "PhysicalWeight": "3600",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "d4ef79e8-754b-4b99-8af4-336a81e6b211"
     },
     {
-      "DevWeightInclStand": "NO",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "1",
       "DigitizerDimensions": "409 x 230",
@@ -2628,12 +2627,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "448.90 x 272.40 x 21.30",
       "PhysicalWeight": "2000",
+      "PhysicalWeightInclStand": "NO",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T17:53:46.334Z",
       "_id": "bd5c2fa8-b6c4-40a4-af52-1184950f95a3"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "435 x 239",
@@ -2664,6 +2663,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "475.00 x 298.00 x 35.00",
       "PhysicalWeight": "3300",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "478ce434-6f08-43d8-865e-c76ec9777e4f"
@@ -2704,7 +2704,6 @@
       "_id": "53363949-0e82-4c88-b231-e1e77cd95c89"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "477 x 268",
@@ -2734,12 +2733,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "589.00 x 344.00 x 21.00",
       "PhysicalWeight": "4500",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "7b6cdaf8-ddf9-4815-8589-92c60403a717"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "477 x 268",
@@ -2769,12 +2768,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "517.00 x 323.00 x 37.00",
       "PhysicalWeight": "3700",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "4d2be310-8277-45c6-bdc8-0065fb41a689"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "477 x 268",
@@ -2804,12 +2803,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "589.00 x 344.00 x 21.00",
       "PhysicalWeight": "4500",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "6e0f82e2-69a7-476b-813c-fc67eb22f38c"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.5",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "527 x 296",
@@ -2840,12 +2839,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "659.00 x 391.00 x 25.00",
       "PhysicalWeight": "6000",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "fc740de6-090e-484d-8cbc-1af3b005aaa3"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "3",
       "DigitizerDimensions": "527 x 296",
@@ -2876,12 +2875,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "589.00 x 364.00 x 22.70",
       "PhysicalWeight": "6300",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "5fcb2d3d-7404-4ec6-90b6-c96674ebfd97"
     },
     {
-      "DevWeightInclStand": "NO",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "1",
       "DigitizerDimensions": "597 x 336",
@@ -2913,6 +2912,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "656.10 x 405.00 x 22.70",
       "PhysicalWeight": "8000",
+      "PhysicalWeightInclStand": "NO",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "28db076b-a8af-4681-abef-9b3018b0df04"
@@ -3704,7 +3704,6 @@
       "_id": "6ed132b8-b231-41e3-a188-5bc7aa23971a"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.4",
       "DigitizerDimensions": "475 x 267",
       "DigitizerMaxHover": "10",
@@ -3733,12 +3732,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "547.00 x 362.00 x 33.40",
       "PhysicalWeight": "5550",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "dfa7f7b1-d1d8-4cbf-aa57-2a3df52cfe29"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.4",
       "DigitizerDimensions": "526 x 296",
       "DigitizerMaxHover": "10",
@@ -3764,12 +3763,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "638.00 x 408.00 x 44.00",
       "PhysicalWeight": "7300",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "c7d5b405-28c2-4256-ae0a-6b7cb2d5711d"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.4",
       "DigitizerDimensions": "526 x 296",
       "DigitizerMaxHover": "10",
@@ -3795,6 +3794,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "638.00 x 408.00 x 44.00",
       "PhysicalWeight": "7300",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "c1b05341-5d43-4003-bb7e-f8b6a5ca0181"
@@ -4651,7 +4651,6 @@
       "_id": "d238bade-9633-4b9f-a4ad-dc9f8472808f"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "2",
       "DigitizerDimensions": "344 x 194",
@@ -4682,6 +4681,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "220.00 x 253.00 x 12.00",
       "PhysicalWeight": "1260",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-12T12:33:46.983Z",
       "_ModifiedDate": "2025-12-12T12:33:46.983Z",
       "_id": "5ef9fa8b-f4f0-4bfb-a1dd-2032a570178d"
@@ -5161,7 +5161,6 @@
       "_id": "f8a037ae-45ef-4392-8b61-d3b09f33166b"
     },
     {
-      "DevWeightInclStand": "YES",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "1",
       "DigitizerDimensions": "525.888 x 295.812",
@@ -5196,12 +5195,12 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "589.2 x 364 x 22.7",
       "PhysicalWeight": "6365",
+      "PhysicalWeightInclStand": "YES",
       "_CreateDate": "2025-12-13T16:20:23.250Z",
       "_ModifiedDate": "2025-12-13T16:25:47.159Z",
       "_id": "4becadaf-648c-4559-87e2-032aa3d6ae2b"
     },
     {
-      "DevWeightInclStand": "NO",
       "DigitizerAccuracyCenter": "0.3",
       "DigitizerAccuracyCorner": "1",
       "DigitizerDimensions": "596.736 x 335.664",
@@ -5235,6 +5234,7 @@
       "ModelType": "PENDISPLAY",
       "PhysicalDimensions": "656.1 x 405 x 22.7",
       "PhysicalWeight": "7200",
+      "PhysicalWeightInclStand": "NO",
       "_CreateDate": "2025-12-13T16:26:14.354Z",
       "_ModifiedDate": "2025-12-13T16:30:35.521Z",
       "_id": "83578dc4-b766-4ca8-85b7-04f16b68caa6"

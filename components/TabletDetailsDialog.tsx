@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { TABLET_FIELDS } from '../tabletFields';
 import { Tablet } from '../types';
 import { prepareTabletForExport } from '../contexts/DataContext';
-import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson } from 'lucide-react';
+import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson, Copy, Check } from 'lucide-react';
 
 interface TabletDetailsDialogProps {
   isOpen: boolean;
@@ -16,8 +17,6 @@ interface TabletDetailsDialogProps {
   hasNext?: boolean;
 }
 
-// Define fields that should not be editable manually
-const READ_ONLY_FIELDS = ['DisplayXPPI', 'DigitizerDiagonal', 'DigitizerArea', 'ModelAge', 'id', 'CreateDate', 'ModifiedDate'];
 
 // Predefined Options
 const BRAND_OPTIONS = ["WACOM", "HUION", "XPPEN", "XENCELABS", "UGEE", "SAMSUNG", "APPLE"];
@@ -66,12 +65,15 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const [showDisplayPanelTechDropdown, setShowDisplayPanelTechDropdown] = useState(false);
   const [showDisplayResolutionDropdown, setShowDisplayResolutionDropdown] = useState(false);
   const [showSupportsTouchDropdown, setShowSupportsTouchDropdown] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [includeCalculated, setIncludeCalculated] = useState(false);
+  const [includeEmpty, setIncludeEmpty] = useState(false);
 
+  // Effect for handling dialog open/close state
   useEffect(() => {
     if (isOpen) {
-      setFormData(tablet);
       setIsEditing(initialIsEditing);
-      setActiveTab('CORE'); // Reset to Core tab on open
+      setActiveTab('CORE'); // Reset to Core tab only when dialog opens
     } else {
       // Reset state when closed
       setIsEditing(false);
@@ -85,7 +87,14 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       setShowDisplayResolutionDropdown(false);
       setShowSupportsTouchDropdown(false);
     }
-  }, [tablet, isOpen, initialIsEditing]);
+  }, [isOpen]); // Only run when isOpen changes
+
+  // Effect for updating form data when tablet changes (without resetting tab)
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(tablet);
+    }
+  }, [tablet]); // Only run when tablet data updates
 
   if (!isOpen) return null;
 
@@ -154,7 +163,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       },
       {
         title: "Physical Dimensions",
-        fields: ["PhysicalDimensions", "PhysicalWeight"]
+        fields: ["PhysicalDimensions", "PhysicalWeight", "PhysicalWeightInclStand"]
       },
       {
         title: "Digitizer & Pen",
@@ -164,7 +173,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     DISPLAY: [
       {
         title: "Display Specs",
-        fields: ["DisplayResolution", "DisplayXPPI", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
+        fields: ["DisplayResolution", "DisplayPixelDensity", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
       }
     ],
     META: [
@@ -175,29 +184,18 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     ]
   };
 
-  // Define units for specific fields
-  const fieldUnits: Record<string, string> = {
-    DigitizerDimensions: 'mm',
-    DigitizerDiagonal: 'mm',
-    DigitizerAccuracyCenter: 'mm',
-    DigitizerAccuracyCorner: 'mm',
-    PhysicalDimensions: 'mm',
-    PhysicalWeight: 'g',
-    DigitizerReportRate: 'RPS',
-    DigitizerPressureLevels: 'Lvl',
-    DigitizerTilt: '°',
-    DisplaySize: '"',
-    DisplayRefreshRate: 'Hz',
-    DisplayResponseTime: 'ms',
-    DisplayXPPI: 'PPI',
-    DigitizerResolution: 'LPmm',
-    DisplayBrightness: 'nits',
-    DisplayViewingAngleHorizontal: 'deg',
-    DisplayViewingAngleVertical: 'deg',
-    ModelAge: 'yrs',
-    DigitizerMaxHover: 'mm',
-    DigitizerArea: 'cm²'
-  };
+  // Derive units and read-only status from metadata
+  const fieldUnits: Record<string, string> = {};
+  const readOnlyFields: string[] = [];
+
+  TABLET_FIELDS.forEach(field => {
+    if (field.unit) {
+      fieldUnits[field.fieldName] = field.unit;
+    }
+    if (field.isCalculated || field.isSystem) {
+      readOnlyFields.push(field.fieldName);
+    }
+  });
 
   const getInputStyles = (fieldName: string, hasRightElement: boolean, isReadOnly: boolean) => {
     const originalValue = (tablet as any)[fieldName] || '';
@@ -231,7 +229,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
               {tablet.ModelName || "New Tablet"}
               {isEditing && <span className="text-xs bg-primary-600 px-2 py-0.5 rounded text-white font-medium">EDITING</span>}
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mt-0.5">{tablet.ModelID || "ID Not Set"}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mt-0.5">{tablet.ModelId || "ID Not Set"}</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -328,9 +326,44 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/50 dark:bg-slate-900/50">
           {activeTab === 'JSON' ? (
             <div className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm min-h-full overflow-hidden flex flex-col">
-              <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">RAW DATA</h3>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-2 mb-4">
+                <h3 className="text-primary-600 dark:text-primary-400 font-bold uppercase text-[10px] tracking-widest hidden sm:block">RAW DATA</h3>
+                <div className="flex items-center gap-4 flex-1 sm:flex-none justify-end">
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={includeCalculated}
+                      onChange={e => setIncludeCalculated(e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
+                    />
+                    Include Calculated
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={includeEmpty}
+                      onChange={e => setIncludeEmpty(e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
+                    />
+                    Include Empty
+                  </label>
+                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                  <button
+                    onClick={() => {
+                      const jsonString = JSON.stringify(prepareTabletForExport(formData, { includeCalculated, includeEmpty }), null, 2);
+                      navigator.clipboard.writeText(jsonString);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                  >
+                    {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                    <span>{isCopied ? 'Copied!' : 'Copy JSON'}</span>
+                  </button>
+                </div>
+              </div>
               <pre className="flex-1 overflow-auto text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                {JSON.stringify(prepareTabletForExport(formData), null, 2)}
+                {JSON.stringify(prepareTabletForExport(formData, { includeCalculated, includeEmpty }), null, 2)}
               </pre>
             </div>
           ) : (
@@ -341,7 +374,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                   {group.fields.map(field => {
                     const unit = fieldUnits[field];
                     const isLink = field === 'ModelProductLink';
-                    const isReadOnly = READ_ONLY_FIELDS.includes(field);
+                    const isReadOnly = readOnlyFields.includes(field);
 
                     // Field Type flags
                     const isDigitizerDiagonal = field === 'DigitizerDiagonal';
@@ -378,7 +411,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                         className={`space-y-1 group ${isLink || isInternalId ? 'col-span-full md:col-span-2' : ''}`}
                       >
                         <label className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
-                          {field}
+                          {TABLET_FIELDS.find(f => f.fieldName === field)?.DisplayName || field}
                           {isReadOnly && <span className="ml-1 text-[9px] text-slate-400 dark:text-slate-600">(Calculated/System)</span>}
                         </label>
 
