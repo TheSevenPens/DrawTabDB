@@ -3,23 +3,33 @@ export interface Tablet {
   id: string; // Internal GUID
   CreateDate: string; // ISO String
   ModifiedDate: string; // ISO String
-  ModelID: string;
+  ModelId: string;
   ModelName: string;
-  Family?: string;
-  Audience?: string;
-  Status?: string;
-  LaunchYear?: string;
-  Brand: string;
-  Type: string; // PENTABLET or PENDISPLAY
-  Link?: string;
-  DigitizerSize?: string;
-  PressureLevels?: string;
-  ReportRate?: string;
+  ModelFamily?: string;
+  ModelAudience?: string;
+  ModelStatus?: string;
+  ModelLaunchYear?: string;
+  ModelBrand: string;
+  ModelType: string; // PENTABLET or PENDISPLAY
+  ModelProductLink?: string;
+  ModelIncludedPen?: string;
+
+  PhysicalDimensions?: string;
+  PhysicalWeight?: string;
+
+  DigitizerDimensions?: string;
+  DigitizerDiagonal?: string; // Calculated Diagonal mm
+  DigitizerPressureLevels?: string;
+  DigitizerReportRate?: string;
   DigitizerResolution?: string;
-  IncludedPen?: string;
-  AccCenter?: string;
-  AccCorner?: string;
-  DevSize?: string;
+  DigitizerType?: string;
+  DigitizerTilt?: string;
+  DigitizerMaxHover?: string;
+  DigitizerAccuracyCenter?: string;
+  DigitizerAccuracyCorner?: string;
+  DigitizerSupportsTouch?: string; // YES, NO, or empty
+  DigitizerArea?: string; // Calculated Area cm² (Transient)
+
   DisplayResolution?: string;
   DisplaySize?: string;
   DisplayViewingAngleHorizontal?: string;
@@ -28,19 +38,14 @@ export interface Tablet {
   DisplayContrast?: string;
   DisplayResponseTime?: string;
   DisplayColorGamuts?: string;
-  PenTech?: string;
-  Tilt?: string;
-  DevWeight?: string;
-  AntiGlare?: string;
-  Lamination?: string;
   DisplayBrightness?: string;
-  MaxHover?: string;
   DisplayRefreshRate?: string;
   DisplayPanelTech?: string;
-  SupportsTouch?: string; // YES, NO, or empty
-  PixelDensity?: string; // Calculated PPI
-  DigitizerDiag?: string; // Calculated Diagonal mm
-  Age?: string; // Calculated Age in years
+  DisplayAntiGlare?: string;
+  DisplayLamination?: string;
+  DisplayXPPI?: string; // Calculated PPI
+
+  ModelAge?: string; // Calculated Age in years
   AspectRatio?: string; // Calculated Aspect Ratio
 }
 

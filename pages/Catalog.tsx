@@ -22,22 +22,22 @@ const FILTERABLE_FIELDS: Array<{
   label: string;
   type: FilterFieldType;
 }> = [
-    { key: 'Brand', label: 'Brand', type: 'text' },
-    { key: 'Type', label: 'Type', type: 'text' },
+    { key: 'ModelBrand', label: 'Brand', type: 'text' },
+    { key: 'ModelType', label: 'Type', type: 'text' },
     { key: 'ModelName', label: 'Model Name', type: 'text' },
-    { key: 'ModelID', label: 'Model ID', type: 'text' },
-    { key: 'Family', label: 'Family', type: 'text' },
-    { key: 'Status', label: 'Status', type: 'text' },
-    { key: 'Audience', label: 'Audience', type: 'text' },
-    { key: 'LaunchYear', label: 'Launch Year', type: 'numeric' },
-    { key: 'Age', label: 'Age', type: 'numeric' },
-    { key: 'DigitizerDiag', label: 'Diagonal Size', type: 'numeric' },
-    { key: 'PressureLevels', label: 'Pressure Levels', type: 'numeric' },
-    { key: 'ReportRate', label: 'Report Rate', type: 'numeric' },
-    { key: 'DevWeight', label: 'Weight', type: 'numeric' },
-    { key: 'PixelDensity', label: 'Pixel Density', type: 'numeric' },
+    { key: 'ModelId', label: 'Model ID', type: 'text' },
+    { key: 'ModelFamily', label: 'Family', type: 'text' },
+    { key: 'ModelStatus', label: 'Status', type: 'text' },
+    { key: 'ModelAudience', label: 'Audience', type: 'text' },
+    { key: 'ModelLaunchYear', label: 'Launch Year', type: 'numeric' },
+    { key: 'ModelAge', label: 'Age', type: 'numeric' },
+    { key: 'DigitizerDiagonal', label: 'Diagonal Size', type: 'numeric' },
+    { key: 'DigitizerPressureLevels', label: 'Pressure Levels', type: 'numeric' },
+    { key: 'DigitizerReportRate', label: 'Report Rate', type: 'numeric' },
+    { key: 'PhysicalWeight', label: 'Weight', type: 'numeric' },
+    { key: 'DisplayXPPI', label: 'Pixel Density', type: 'numeric' },
     { key: 'AspectRatio', label: 'Aspect Ratio', type: 'numeric' },
-    { key: 'SupportsTouch', label: 'Touch Support', type: 'text' },
+    { key: 'DigitizerSupportsTouch', label: 'Touch Support', type: 'text' },
   ];
 import { useNavigate } from 'react-router-dom';
 
@@ -56,28 +56,28 @@ const parseSearchQuery = (query: string): string[] => {
 };
 
 const AVAILABLE_COLUMNS = [
-  { id: 'Family', label: 'Family' },
-  { id: 'LaunchYear', label: 'Released Year' },
-  { id: 'DigitizerDiag', label: 'Diagonal Size' },
-  { id: 'IncludedPen', label: 'Included Pen' },
-  { id: 'DigitizerSize', label: 'Active Area' },
+  { id: 'ModelFamily', label: 'Family' },
+  { id: 'ModelLaunchYear', label: 'Released Year' },
+  { id: 'DigitizerDiagonal', label: 'Diagonal Size' },
+  { id: 'ModelIncludedPen', label: 'Included Pen' },
+  { id: 'DigitizerDimensions', label: 'Active Area' },
   { id: 'AspectRatio', label: 'Aspect Ratio' },
-  { id: 'PressureLevels', label: 'Pressure Levels' },
+  { id: 'DigitizerPressureLevels', label: 'Pressure Levels' },
   { id: 'DisplayResolution', label: 'Display Res' },
-  { id: 'PixelDensity', label: 'Pixel Density' },
+  { id: 'DisplayXPPI', label: 'Pixel Density' },
   { id: 'DigitizerResolution', label: 'Digitizer Res' },
-  { id: 'DevWeight', label: 'Weight' },
-  { id: 'SupportsTouch', label: 'Touch Support' }
+  { id: 'PhysicalWeight', label: 'Weight' },
+  { id: 'DigitizerSupportsTouch', label: 'Touch Support' }
 ];
 
 const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
-  ModelID: '',
+  ModelId: '',
   ModelName: '',
-  Brand: 'WACOM',
-  Type: 'PENTABLET',
-  LaunchYear: new Date().getFullYear().toString(),
-  Status: 'AVAILABLE',
-  Audience: 'CONSUMER'
+  ModelBrand: 'WACOM',
+  ModelType: 'PENTABLET',
+  ModelLaunchYear: new Date().getFullYear().toString(),
+  ModelStatus: 'AVAILABLE',
+  ModelAudience: 'CONSUMER'
 };
 
 const Catalog: React.FC = () => {
@@ -125,7 +125,7 @@ const Catalog: React.FC = () => {
   const [detailTabletId, setDetailTabletId] = useState<string | null>(null);
 
   // View Settings State
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['LaunchYear', 'DigitizerDiag']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['ModelLaunchYear', 'DigitizerDiagonal']);
   const [diagUnit, setDiagUnit] = useState<'mm' | 'in'>('in');
   const [activeAreaUnit, setActiveAreaUnit] = useState<'mm' | 'in'>('mm');
   const [digitizerResUnit, setDigitizerResUnit] = useState<'lpi' | 'lpmm'>('lpi');
@@ -309,11 +309,11 @@ const Catalog: React.FC = () => {
 
   const sortOptions = [
     { label: 'Name', value: 'ModelName' },
-    { label: 'Brand', value: 'Brand' },
-    { label: 'Family', value: 'Family' },
-    { label: 'Year', value: 'LaunchYear' },
-    { label: 'Age', value: 'Age' },
-    { label: 'Diagonal Size', value: 'DigitizerDiag' },
+    { label: 'Brand', value: 'ModelBrand' },
+    { label: 'Family', value: 'ModelFamily' },
+    { label: 'Year', value: 'ModelLaunchYear' },
+    { label: 'Age', value: 'ModelAge' },
+    { label: 'Diagonal Size', value: 'DigitizerDiagonal' },
     { label: 'Aspect Ratio', value: 'AspectRatio' },
   ];
 
@@ -323,11 +323,11 @@ const Catalog: React.FC = () => {
   const filteredTablets = useMemo(() => {
     const filtered = tablets.filter(tablet => {
       const modelName = tablet.ModelName.toLowerCase();
-      const modelID = tablet.ModelID.toLowerCase();
-      const brand = tablet.Brand.toLowerCase();
+      const modelId = tablet.ModelId.toLowerCase();
+      const brand = tablet.ModelBrand.toLowerCase();
 
       const matchesSearch = searchTerms.length === 0 || searchTerms.every(term =>
-        modelName.includes(term) || modelID.includes(term) || brand.includes(term)
+        modelName.includes(term) || modelId.includes(term) || brand.includes(term)
       );
 
       const matchesFilters = filters.every(filter => {
@@ -387,17 +387,17 @@ const Catalog: React.FC = () => {
         const field = criterion.field;
 
         switch (field) {
-          case 'LaunchYear':
-            valA = a.LaunchYear ? parseInt(a.LaunchYear) : -1;
-            valB = b.LaunchYear ? parseInt(b.LaunchYear) : -1;
+          case 'ModelLaunchYear':
+            valA = a.ModelLaunchYear ? parseInt(a.ModelLaunchYear) : -1;
+            valB = b.ModelLaunchYear ? parseInt(b.ModelLaunchYear) : -1;
             break;
-          case 'Age':
-            valA = a.Age ? parseInt(a.Age) : -1;
-            valB = b.Age ? parseInt(b.Age) : -1;
+          case 'ModelAge':
+            valA = a.ModelAge ? parseInt(a.ModelAge) : -1;
+            valB = b.ModelAge ? parseInt(b.ModelAge) : -1;
             break;
-          case 'DigitizerDiag':
-            valA = a.DigitizerDiag ? parseFloat(a.DigitizerDiag) : -1;
-            valB = b.DigitizerDiag ? parseFloat(b.DigitizerDiag) : -1;
+          case 'DigitizerDiagonal':
+            valA = a.DigitizerDiagonal ? parseFloat(a.DigitizerDiagonal) : -1;
+            valB = b.DigitizerDiagonal ? parseFloat(b.DigitizerDiagonal) : -1;
             break;
           case 'AspectRatio':
             const getRatio = (size?: string) => {
@@ -410,8 +410,8 @@ const Catalog: React.FC = () => {
               }
               return -1;
             };
-            valA = getRatio(a.DigitizerSize);
-            valB = getRatio(b.DigitizerSize);
+            valA = getRatio(a.DigitizerDimensions);
+            valB = getRatio(b.DigitizerDimensions);
             break;
           default:
             // Default string comparison for other fields
@@ -853,7 +853,7 @@ const Catalog: React.FC = () => {
 
                 // helper to render unit config within pill
                 const renderUnitConfig = () => {
-                  if (colId === 'DigitizerDiag') {
+                  if (colId === 'DigitizerDiagonal') {
                     return (
                       <div className="relative flex items-center">
                         <button
@@ -874,7 +874,7 @@ const Catalog: React.FC = () => {
                       </div>
                     );
                   }
-                  if (colId === 'DigitizerSize') {
+                  if (colId === 'DigitizerDimensions') {
                     return (
                       <div className="relative flex items-center">
                         <button

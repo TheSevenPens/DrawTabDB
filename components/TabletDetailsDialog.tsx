@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Tablet } from '../types';
+import { prepareTabletForExport } from '../contexts/DataContext';
 import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson } from 'lucide-react';
 
 interface TabletDetailsDialogProps {
@@ -16,12 +17,12 @@ interface TabletDetailsDialogProps {
 }
 
 // Define fields that should not be editable manually
-const READ_ONLY_FIELDS = ['PixelDensity', 'DigitizerDiag', 'DigitizerArea', 'Age', 'id', 'CreateDate', 'ModifiedDate'];
+const READ_ONLY_FIELDS = ['DisplayXPPI', 'DigitizerDiagonal', 'DigitizerArea', 'ModelAge', 'id', 'CreateDate', 'ModifiedDate'];
 
 // Predefined Options
 const BRAND_OPTIONS = ["WACOM", "HUION", "XPPEN", "XENCELABS", "UGEE", "SAMSUNG", "APPLE"];
 const TYPE_OPTIONS = ["PENDISPLAY", "PENTABLET", "STANDALONE", ""];
-const PENTECH_OPTIONS = ["PASSIVE_EMR", "ACTIVE_EMR", "MPP", "AES", "APPLE", ""];
+const DIGITIZER_TYPE_OPTIONS = ["PASSIVE_EMR", "ACTIVE_EMR", "MPP", "AES", "APPLE", ""];
 const LAMINATION_OPTIONS = ["YES", "NO", ""];
 const ANTIGLARE_OPTIONS = ["ETCHEDGLASS", "AGFILM", ""];
 const AUDIENCE_OPTIONS = ["CONSUMER", "PROFESSIONAL", ""];
@@ -58,7 +59,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   // Dropdown states
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
-  const [showPenTechDropdown, setShowPenTechDropdown] = useState(false);
+  const [showDigitizerTypeDropdown, setShowDigitizerTypeDropdown] = useState(false);
   const [showLaminationDropdown, setShowLaminationDropdown] = useState(false);
   const [showAntiGlareDropdown, setShowAntiGlareDropdown] = useState(false);
   const [showAudienceDropdown, setShowAudienceDropdown] = useState(false);
@@ -76,7 +77,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       setIsEditing(false);
       setShowBrandDropdown(false);
       setShowTypeDropdown(false);
-      setShowPenTechDropdown(false);
+      setShowDigitizerTypeDropdown(false);
       setShowLaminationDropdown(false);
       setShowAntiGlareDropdown(false);
       setShowAudienceDropdown(false);
@@ -94,32 +95,32 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   };
 
   const handleBrandSelect = (brand: string) => {
-    setFormData(prev => ({ ...prev, Brand: brand }));
+    setFormData(prev => ({ ...prev, ModelBrand: brand }));
     setShowBrandDropdown(false);
   };
 
   const handleTypeSelect = (typeVal: string) => {
-    setFormData(prev => ({ ...prev, Type: typeVal }));
+    setFormData(prev => ({ ...prev, ModelType: typeVal }));
     setShowTypeDropdown(false);
   };
 
-  const handlePenTechSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, PenTech: val }));
-    setShowPenTechDropdown(false);
+  const handleDigitizerTypeSelect = (val: string) => {
+    setFormData(prev => ({ ...prev, DigitizerType: val }));
+    setShowDigitizerTypeDropdown(false);
   };
 
   const handleLaminationSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, Lamination: val }));
+    setFormData(prev => ({ ...prev, DisplayLamination: val }));
     setShowLaminationDropdown(false);
   };
 
   const handleAntiGlareSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, AntiGlare: val }));
+    setFormData(prev => ({ ...prev, DisplayAntiGlare: val }));
     setShowAntiGlareDropdown(false);
   };
 
   const handleAudienceSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, Audience: val }));
+    setFormData(prev => ({ ...prev, ModelAudience: val }));
     setShowAudienceDropdown(false);
   };
 
@@ -134,7 +135,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   };
 
   const handleSupportsTouchSelect = (val: string) => {
-    setFormData(prev => ({ ...prev, SupportsTouch: val }));
+    setFormData(prev => ({ ...prev, DigitizerSupportsTouch: val }));
     setShowSupportsTouchDropdown(false);
   };
 
@@ -149,21 +150,21 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     CORE: [
       {
         title: "General Information",
-        fields: ["Brand", "Family", "ModelName", "ModelID", "LaunchYear", "Age", "Status", "Type", "Link", "IncludedPen", "Audience"]
+        fields: ["ModelBrand", "ModelFamily", "ModelName", "ModelId", "ModelLaunchYear", "ModelAge", "ModelStatus", "ModelType", "ModelProductLink", "ModelIncludedPen", "ModelAudience"]
       },
       {
         title: "Physical Dimensions",
-        fields: ["DevSize", "DevWeight"]
+        fields: ["PhysicalDimensions", "PhysicalWeight"]
       },
       {
         title: "Digitizer & Pen",
-        fields: ["DigitizerSize", "DigitizerDiag", "DigitizerArea", "PressureLevels", "ReportRate", "DigitizerResolution", "PenTech", "Tilt", "MaxHover", "AccCenter", "AccCorner", "SupportsTouch"]
+        fields: ["DigitizerDimensions", "DigitizerDiagonal", "DigitizerArea", "DigitizerPressureLevels", "DigitizerReportRate", "DigitizerResolution", "DigitizerType", "DigitizerTilt", "DigitizerMaxHover", "DigitizerAccuracyCenter", "DigitizerAccuracyCorner", "DigitizerSupportsTouch"]
       }
     ],
     DISPLAY: [
       {
         title: "Display Specs",
-        fields: ["DisplayResolution", "PixelDensity", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "AntiGlare", "Lamination"]
+        fields: ["DisplayResolution", "DisplayXPPI", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
       }
     ],
     META: [
@@ -176,25 +177,25 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
 
   // Define units for specific fields
   const fieldUnits: Record<string, string> = {
-    DigitizerSize: 'mm',
-    DigitizerDiag: 'mm',
-    AccCenter: 'mm',
-    AccCorner: 'mm',
-    DevSize: 'mm',
-    DevWeight: 'g',
-    ReportRate: 'RPS',
-    PressureLevels: 'Lvl',
-    Tilt: '°',
+    DigitizerDimensions: 'mm',
+    DigitizerDiagonal: 'mm',
+    DigitizerAccuracyCenter: 'mm',
+    DigitizerAccuracyCorner: 'mm',
+    PhysicalDimensions: 'mm',
+    PhysicalWeight: 'g',
+    DigitizerReportRate: 'RPS',
+    DigitizerPressureLevels: 'Lvl',
+    DigitizerTilt: '°',
     DisplaySize: '"',
     DisplayRefreshRate: 'Hz',
     DisplayResponseTime: 'ms',
-    PixelDensity: 'PPI',
+    DisplayXPPI: 'PPI',
     DigitizerResolution: 'LPmm',
     DisplayBrightness: 'nits',
     DisplayViewingAngleHorizontal: 'deg',
     DisplayViewingAngleVertical: 'deg',
-    Age: 'yrs',
-    MaxHover: 'mm',
+    ModelAge: 'yrs',
+    DigitizerMaxHover: 'mm',
     DigitizerArea: 'cm²'
   };
 
@@ -329,7 +330,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
             <div className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm min-h-full overflow-hidden flex flex-col">
               <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">RAW DATA</h3>
               <pre className="flex-1 overflow-auto text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                {JSON.stringify(formData, null, 2)}
+                {JSON.stringify(prepareTabletForExport(formData), null, 2)}
               </pre>
             </div>
           ) : (
@@ -339,32 +340,32 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.fields.map(field => {
                     const unit = fieldUnits[field];
-                    const isLink = field === 'Link';
+                    const isLink = field === 'ModelProductLink';
                     const isReadOnly = READ_ONLY_FIELDS.includes(field);
 
                     // Field Type flags
-                    const isDigitizerDiag = field === 'DigitizerDiag';
+                    const isDigitizerDiagonal = field === 'DigitizerDiagonal';
                     const isDigitizerResolution = field === 'DigitizerResolution';
-                    const isDigitizerSize = field === 'DigitizerSize';
-                    const isBrand = field === 'Brand';
-                    const isType = field === 'Type';
-                    const isPenTech = field === 'PenTech';
-                    const isLamination = field === 'Lamination';
-                    const isAntiGlare = field === 'AntiGlare';
-                    const isAudience = field === 'Audience';
+                    const isDigitizerDimensions = field === 'DigitizerDimensions';
+                    const isBrand = field === 'ModelBrand';
+                    const isType = field === 'ModelType';
+                    const isDigitizerType = field === 'DigitizerType';
+                    const isLamination = field === 'DisplayLamination';
+                    const isAntiGlare = field === 'DisplayAntiGlare';
+                    const isAudience = field === 'ModelAudience';
                     const isDisplayPanelTech = field === 'DisplayPanelTech';
                     const isDisplayResolution = field === 'DisplayResolution';
-                    const isSupportsTouch = field === 'SupportsTouch';
+                    const isSupportsTouch = field === 'DigitizerSupportsTouch';
                     const isInternalId = field === 'id';
-                    const isDevSize = field === 'DevSize';
-                    const isDevWeight = field === 'DevWeight';
+                    const isPhysicalDimensions = field === 'PhysicalDimensions';
+                    const isPhysicalWeight = field === 'PhysicalWeight';
 
 
-                    const hasDropdown = isBrand || isType || isPenTech || isLamination || isAntiGlare || isAudience || isDisplayPanelTech || isDisplayResolution || isSupportsTouch;
+                    const hasDropdown = isBrand || isType || isDigitizerType || isLamination || isAntiGlare || isAudience || isDisplayPanelTech || isDisplayResolution || isSupportsTouch;
 
                     let calculatedValue: string | undefined = undefined;
                     if (field === 'DigitizerArea') {
-                      const match = ((formData as any).DigitizerSize || '').match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
+                      const match = ((formData as any).DigitizerDimensions || '').match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
                       if (match) {
                         const area = (parseFloat(match[1]) * parseFloat(match[2])) / 100;
                         calculatedValue = isNaN(area) ? '' : area.toFixed(2);
@@ -418,7 +419,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                               onFocus={() => {
                                 if (isBrand && isEditing) setShowBrandDropdown(true);
                                 if (isType && isEditing) setShowTypeDropdown(true);
-                                if (isPenTech && isEditing) setShowPenTechDropdown(true);
+                                if (isDigitizerType && isEditing) setShowDigitizerTypeDropdown(true);
                                 if (isLamination && isEditing) setShowLaminationDropdown(true);
                                 if (isAntiGlare && isEditing) setShowAntiGlareDropdown(true);
                                 if (isAudience && isEditing) setShowAudienceDropdown(true);
@@ -429,7 +430,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                               onBlur={() => {
                                 if (isBrand) setTimeout(() => setShowBrandDropdown(false), 200);
                                 if (isType) setTimeout(() => setShowTypeDropdown(false), 200);
-                                if (isPenTech) setTimeout(() => setShowPenTechDropdown(false), 200);
+                                if (isDigitizerType) setTimeout(() => setShowDigitizerTypeDropdown(false), 200);
                                 if (isLamination) setTimeout(() => setShowLaminationDropdown(false), 200);
                                 if (isAntiGlare) setTimeout(() => setShowAntiGlareDropdown(false), 200);
                                 if (isAudience) setTimeout(() => setShowAudienceDropdown(false), 200);
@@ -461,10 +462,10 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                                 ))}
                               </div>
                             )}
-                            {isPenTech && showPenTechDropdown && isEditing && (
+                            {isDigitizerType && showDigitizerTypeDropdown && isEditing && (
                               <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                {PENTECH_OPTIONS.map(opt => (
-                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handlePenTechSelect(opt); }}>{opt || '(None)'}</div>
+                                {DIGITIZER_TYPE_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleDigitizerTypeSelect(opt); }}>{opt || '(None)'}</div>
                                 ))}
                               </div>
                             )}
@@ -520,13 +521,13 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                         )}
 
                         {/* Helpers */}
-                        {isDigitizerDiag && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
+                        {isDigitizerDiagonal && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
                           <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) / 25.4).toFixed(2)}″</p>
                         )}
                         {isDigitizerResolution && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
                           <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {Math.round(parseFloat((formData as any)[field]) * 25.4)} LPI</p>
                         )}
-                        {isDevWeight && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
+                        {isPhysicalWeight && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
                           <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) * 0.00220462).toFixed(2)} lbs</p>
                         )}
                         {field === 'DigitizerArea' && calculatedValue && !isNaN(parseFloat(calculatedValue)) && (

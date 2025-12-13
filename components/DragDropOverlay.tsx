@@ -43,7 +43,7 @@ const DragDropOverlay: React.FC = () => {
 
     // Get the file
     const files = (e as React.DragEvent).dataTransfer ? (e as React.DragEvent).dataTransfer.files : (e as DragEvent).dataTransfer?.files;
-    
+
     if (files && files.length > 0) {
       const file = files[0];
       if (file.type === 'application/json' || file.name.endsWith('.json')) {
@@ -51,7 +51,7 @@ const DragDropOverlay: React.FC = () => {
         reader.onload = (event) => {
           try {
             const json = JSON.parse(event.target?.result as string);
-            
+
             // Basic validation
             let newTablets: any[] = [];
             if (Array.isArray(json)) {
@@ -63,12 +63,12 @@ const DragDropOverlay: React.FC = () => {
             }
 
             if (newTablets.length === 0) {
-               throw new Error("No tablet data found in file.");
+              throw new Error("No tablet data found in file.");
             }
 
-            // Check if items look like tablets (check for Brand property)
-            if (!newTablets[0].Brand) {
-              throw new Error("Data does not look like tablet data (missing Brand field).");
+            // Check if items look like tablets (check for Brand or ModelBrand property)
+            if (!newTablets[0].Brand && !newTablets[0].ModelBrand) {
+              throw new Error("Data does not look like tablet data (missing Brand/ModelBrand field).");
             }
 
             // Pass as Partial<Tablet>[] because setTablets now accepts that and handles ID generation
@@ -125,11 +125,10 @@ const DragDropOverlay: React.FC = () => {
 
       {/* Notification Toast */}
       {notification && (
-        <div className={`fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-xl shadow-lg border animate-slide-up ${
-          notification.type === 'success' 
-            ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-200' 
+        <div className={`fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-xl shadow-lg border animate-slide-up ${notification.type === 'success'
+            ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-200'
             : 'bg-red-950/90 border-red-500/30 text-red-200'
-        }`}>
+          }`}>
           {notification.type === 'success' ? <CheckCircle size={24} /> : <FileWarning size={24} />}
           <div>
             <p className="font-bold">{notification.type === 'success' ? 'Database Updated' : 'Import Failed'}</p>

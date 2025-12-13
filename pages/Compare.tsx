@@ -51,33 +51,33 @@ const Compare: React.FC = () => {
 
     // Define comparison fields
     const fields: { key: keyof Tablet; label: string; unit?: string; isNumeric?: boolean }[] = [
-        { key: 'Brand', label: 'Brand' },
-        { key: 'Family', label: 'Family' },
+        { key: 'ModelBrand', label: 'Brand' },
+        { key: 'ModelFamily', label: 'Family' },
         { key: 'ModelName', label: 'Model Name' },
-        { key: 'LaunchYear', label: 'Released', isNumeric: true },
-        { key: 'Age', label: 'Age', unit: 'years', isNumeric: true },
-        { key: 'Type', label: 'Type' },
-        { key: 'Price', label: 'Price (Est.)', isNumeric: true } as any,
-        { key: 'DigitizerDiag', label: 'Diagonal Size', unit: 'mm', isNumeric: true },
-        { key: 'DigitizerSize', label: 'Active Area', unit: 'mm' },
+        { key: 'ModelLaunchYear', label: 'Released', isNumeric: true },
+        { key: 'ModelAge', label: 'Age', unit: 'years', isNumeric: true },
+        { key: 'ModelType', label: 'Type' },
+        { key: 'ModelProductLink', label: 'Link' },
+        { key: 'DigitizerDiagonal', label: 'Diagonal Size', unit: 'mm', isNumeric: true },
+        { key: 'DigitizerDimensions', label: 'Active Area', unit: 'mm' },
         { key: 'AspectRatio', label: 'Aspect Ratio' },
-        { key: 'PressureLevels', label: 'Pressure Levels', isNumeric: true },
-        { key: 'ReportRate', label: 'Report Rate', isNumeric: true },
+        { key: 'DigitizerPressureLevels', label: 'Pressure Levels', isNumeric: true },
+        { key: 'DigitizerReportRate', label: 'Report Rate', isNumeric: true },
         { key: 'DigitizerResolution', label: 'Digitizer Res', unit: 'LPmm', isNumeric: true },
-        { key: 'IncludedPen', label: 'Pen Model' },
-        { key: 'PenTech', label: 'Pen Technology' },
-        { key: 'Tilt', label: 'Tilt Support', isNumeric: true },
-        { key: 'SupportsTouch', label: 'Touch Support' },
+        { key: 'ModelIncludedPen', label: 'Pen Model' },
+        { key: 'DigitizerType', label: 'Pen Technology' },
+        { key: 'DigitizerTilt', label: 'Tilt Support', isNumeric: true },
+        { key: 'DigitizerSupportsTouch', label: 'Touch Support' },
         { key: 'DisplayResolution', label: 'Display Resolution' },
         { key: 'DisplaySize', label: 'Display Size', isNumeric: true },
-        { key: 'PixelDensity', label: 'PPI', isNumeric: true },
+        { key: 'DisplayXPPI', label: 'PPI', isNumeric: true },
         { key: 'DisplayColorGamuts', label: 'Color Gamut' },
         { key: 'DisplayBrightness', label: 'Brightness', isNumeric: true },
         { key: 'DisplayContrast', label: 'Contrast', isNumeric: true },
-        { key: 'Lamination', label: 'Laminated' },
-        { key: 'AntiGlare', label: 'Anti-Glare' },
-        { key: 'DevSize', label: 'Dimensions', unit: 'mm' },
-        { key: 'DevWeight', label: 'Weight', unit: 'g', isNumeric: true },
+        { key: 'DisplayLamination', label: 'Laminated' },
+        { key: 'DisplayAntiGlare', label: 'Anti-Glare' },
+        { key: 'PhysicalDimensions', label: 'Dimensions', unit: 'mm' },
+        { key: 'PhysicalWeight', label: 'Weight', unit: 'g', isNumeric: true },
     ];
 
     if (selectedTablets.length === 0) {
@@ -171,9 +171,9 @@ const Compare: React.FC = () => {
                                         </button>
                                     </div>
 
-                                    <div className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-1">{tablet.Brand}</div>
+                                    <div className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-1">{tablet.ModelBrand}</div>
                                     <div className="font-bold text-slate-900 dark:text-white text-lg leading-tight">{tablet.ModelName}</div>
-                                    <div className="text-xs text-slate-500 font-mono mt-1">{tablet.ModelID}</div>
+                                    <div className="text-xs text-slate-500 font-mono mt-1">{tablet.ModelId}</div>
                                 </th>
                             ))}
                         </tr>
@@ -228,8 +228,8 @@ const Compare: React.FC = () => {
                                             <td
                                                 key={`${tablet.id}-${field.key}`}
                                                 className={`px-4 py-2 text-sm border-r border-slate-100 dark:border-slate-800/50 last:border-r-0 relative ${isIdentical
-                                                        ? 'text-slate-400 dark:text-slate-500'
-                                                        : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
+                                                    ? 'text-slate-400 dark:text-slate-500'
+                                                    : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2">
