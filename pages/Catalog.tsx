@@ -123,11 +123,43 @@ const Catalog: React.FC = () => {
   // We now use internal 'id' for tracking details
   const [detailTabletId, setDetailTabletId] = useState<string | null>(null);
 
+  // Column Settings State
+  interface ColumnSettings {
+    customLabel?: string;
+    textColor?: string;
+    unit?: string;
+  }
+
+  const [columnSettings, setColumnSettings] = useState<Record<string, ColumnSettings>>({
+    DigitizerDiagonal: { unit: 'in' },
+    DigitizerDimensions: { unit: 'mm' },
+    DigitizerResolution: { unit: 'lpi' }
+  });
+
+  const [openSettingsMenuColId, setOpenSettingsMenuColId] = useState<string | null>(null);
+
+  const updateColumnSetting = (colId: string, updates: Partial<ColumnSettings>) => {
+    setColumnSettings(prev => ({
+      ...prev,
+      [colId]: { ...(prev[colId] || {}), ...updates }
+    }));
+  };
+
+  const getColumnLabel = (colId: string) => {
+    return columnSettings[colId]?.customLabel || AVAILABLE_COLUMNS.find(c => c.id === colId)?.label || colId;
+  };
+
+  const TEXT_COLORS = [
+    { label: 'Default', value: 'text-slate-700 dark:text-slate-300' },
+    { label: 'Primary', value: 'text-primary-600 dark:text-primary-400' },
+    { label: 'Red', value: 'text-red-600 dark:text-red-400' },
+    { label: 'Green', value: 'text-emerald-600 dark:text-emerald-400' },
+    { label: 'Blue', value: 'text-blue-600 dark:text-blue-400' },
+    { label: 'Amber', value: 'text-amber-600 dark:text-amber-400' },
+  ];
+
   // View Settings State
   const [visibleColumns, setVisibleColumns] = useState<string[]>(['ModelLaunchYear', 'DigitizerDiagonal']);
-  const [diagUnit, setDiagUnit] = useState<'mm' | 'in'>('in');
-  const [activeAreaUnit, setActiveAreaUnit] = useState<'mm' | 'in'>('mm');
-  const [digitizerResUnit, setDigitizerResUnit] = useState<'lpi' | 'lpmm'>('lpi');
   const [showSettings, setShowSettings] = useState(false);
 
   // Pane Expansion State
@@ -244,7 +276,7 @@ const Catalog: React.FC = () => {
             field: editingPillField,
             condition: editingPillCondition,
             value: editingPillValue,
-            ...(editingPillCondition === 'range' && editingPillValue2 ? { value2: editingPillValue2 } : { value2: undefined })
+            ...(editingPillCondition === 'range' && editingPillValue2 ? { value2: undefined } : { value2: undefined })
           }
           : f
       ));
@@ -626,7 +658,6 @@ const Catalog: React.FC = () => {
                       title="Add filter field"
                     >
                       <Plus size={12} />
-                      <span>Add Field</span>
                     </button>
 
                     {showFieldMenu && (
@@ -798,10 +829,10 @@ const Catalog: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setShowSortMenu(!showSortMenu)}
+                    title="Add Sort"
                     className="px-2.5 py-1 rounded-lg text-xs font-medium border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-1.5"
                   >
                     <Plus size={12} />
-                    Add Sort
                   </button>
 
                   {/* Add Sort Menu */}
@@ -850,90 +881,129 @@ const Catalog: React.FC = () => {
                 const col = AVAILABLE_COLUMNS.find(c => c.id === colId);
                 if (!col) return null;
 
-                // helper to render unit config within pill
-                const renderUnitConfig = () => {
-                  if (colId === 'DigitizerDiagonal') {
-                    return (
-                      <div className="relative flex items-center">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
-                          className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[24px] text-center transition-colors"
-                        >
-                          {diagUnit.toUpperCase()}
-                        </button>
-                        {openUnitMenuColId === colId && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
-                            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
-                              <button onClick={() => { setDiagUnit('in'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${diagUnit === 'in' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>IN</button>
-                              <button onClick={() => { setDiagUnit('mm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${diagUnit === 'mm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>MM</button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  }
-                  if (colId === 'DigitizerDimensions') {
-                    return (
-                      <div className="relative flex items-center">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
-                          className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[24px] text-center transition-colors"
-                        >
-                          {activeAreaUnit.toUpperCase()}
-                        </button>
-                        {openUnitMenuColId === colId && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
-                            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
-                              <button onClick={() => { setActiveAreaUnit('in'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${activeAreaUnit === 'in' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>IN</button>
-                              <button onClick={() => { setActiveAreaUnit('mm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${activeAreaUnit === 'mm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>MM</button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  }
-                  if (colId === 'DigitizerResolution') {
-                    return (
-                      <div className="relative flex items-center">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
-                          className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[32px] text-center transition-colors"
-                        >
-                          {digitizerResUnit.toUpperCase()}
-                        </button>
-                        {openUnitMenuColId === colId && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
-                            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
-                              <button onClick={() => { setDigitizerResUnit('lpi'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${digitizerResUnit === 'lpi' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>LPI</button>
-                              <button onClick={() => { setDigitizerResUnit('lpmm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${digitizerResUnit === 'lpmm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>LPmm</button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  }
-                  return null;
-                };
+                const isOpen = openSettingsMenuColId === colId;
+                const settings = columnSettings[colId] || {};
+                const currentLabel = settings.customLabel || col.label;
 
                 return (
                   <div
                     key={col.id}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300"
+                    className="relative"
                   >
-                    {col.label}
-                    {renderUnitConfig()}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeColumn(col.id);
-                      }}
-                      className="text-primary-400 hover:text-primary-600 dark:text-primary-500 dark:hover:text-primary-300 transition-colors ml-1"
+                    <div
+                      onClick={() => setOpenSettingsMenuColId(isOpen ? null : colId)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5 cursor-pointer select-none
+                        ${isOpen
+                          ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-300 dark:border-primary-700 text-primary-800 dark:text-primary-200'
+                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-500'
+                        }`}
                     >
-                      <X size={12} />
-                    </button>
+                      {currentLabel}
+
+                      {/* Close button inside pill */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeColumn(col.id);
+                        }}
+                        className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-1 px-1 -mr-1"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+
+                    {/* Settings Submenu */}
+                    {isOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setOpenSettingsMenuColId(null)} />
+                        <div className="absolute top-full left-0 mt-2 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 min-w-[240px] flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-100">
+
+                          {/* Header showing original field name */}
+                          <div className="pb-2 border-b border-slate-100 dark:border-slate-700/50">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Original Field</span>
+                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{col.label}</div>
+                          </div>
+
+                          {/* Label Override */}
+                          <div className="space-y-1">
+                            <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Label</label>
+                            <input
+                              type="text"
+                              value={settings.customLabel || ''}
+                              placeholder={col.label}
+                              onChange={(e) => updateColumnSetting(colId, { customLabel: e.target.value })}
+                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-xs text-slate-900 dark:text-white focus:border-primary-500 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Text Color */}
+                          <div className="space-y-1">
+                            <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Color</label>
+                            <div className="grid grid-cols-6 gap-1">
+                              {TEXT_COLORS.map((color) => (
+                                <button
+                                  key={color.label}
+                                  title={color.label}
+                                  onClick={() => updateColumnSetting(colId, { textColor: color.value })}
+                                  className={`w-6 h-6 rounded-full border-2 transition-all ${(settings.textColor === color.value) || (!settings.textColor && color.label === 'Default')
+                                    ? 'border-slate-400 dark:border-slate-500 scale-110 shadow-sm'
+                                    : 'border-transparent hover:scale-110'
+                                    }`}
+                                >
+                                  <div className={`w-full h-full rounded-full ${color.value.replace('text-', 'bg-').split(' ')[0]}`} />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Unit Selection (Conditional) */}
+                          {(colId === 'DigitizerDiagonal' || colId === 'DigitizerDimensions' || colId === 'DigitizerResolution') && (
+                            <div className="space-y-1 pt-1 border-t border-slate-100 dark:border-slate-700/50">
+                              <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Unit</label>
+                              <div className="flex bg-slate-100 dark:bg-slate-900 rounded p-1">
+                                {colId === 'DigitizerDiagonal' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'in' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >IN</button>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'mm' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >MM</button>
+                                  </>
+                                )}
+                                {colId === 'DigitizerDimensions' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'mm' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'mm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >MM</button>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'in' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'in' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >IN</button>
+                                  </>
+                                )}
+                                {colId === 'DigitizerResolution' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'lpi' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${!settings.unit || settings.unit === 'lpi' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >LPI</button>
+                                    <button
+                                      onClick={() => updateColumnSetting(colId, { unit: 'lpmm' })}
+                                      className={`flex-1 text-[10px] font-bold py-1 rounded transition-colors ${settings.unit === 'lpmm' ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                                    >LPmm</button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -942,10 +1012,10 @@ const Catalog: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowColumnMenu(!showColumnMenu)}
+                  title="Add Column"
                   className="px-2.5 py-1 rounded-lg text-xs font-medium border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center gap-1.5"
                 >
                   <Plus size={12} />
-                  Add Column
                 </button>
 
                 {/* Add Menu Dropdown */}
@@ -1013,9 +1083,7 @@ const Catalog: React.FC = () => {
                 key={tablet.id}
                 tablet={tablet}
                 visibleColumns={visibleColumns}
-                diagUnit={diagUnit}
-                activeAreaUnit={activeAreaUnit}
-                digitizerResUnit={digitizerResUnit}
+                columnSettings={columnSettings}
                 onViewDetails={(t) => setDetailTabletId(t.id)}
               />
             ))}
