@@ -290,7 +290,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
               }`}
           >
             <LayoutGrid size={16} />
-            Core Specs
+            Core
           </button>
           <button
             onClick={() => setActiveTab('DISPLAY')}
@@ -310,7 +310,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
               }`}
           >
             <Info size={16} />
-            Meta Data
+            Metadata
           </button>
           <button
             onClick={() => setActiveTab('JSON')}
@@ -320,7 +320,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
               }`}
           >
             <FileJson size={16} />
-            Raw JSON
+            JSON
           </button>
         </div>
 
