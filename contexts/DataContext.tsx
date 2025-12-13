@@ -19,7 +19,8 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Helper to prepare tablet data for export/preview (strip calculated, rename metadata, sort keys)
-export const prepareTabletForExport = (tablet: Tablet | any): Partial<Tablet> => {
+export const prepareTabletForExport = (tablet: Tablet | any, options: { includeCalculated?: boolean; includeEmpty?: boolean } = {}): Partial<Tablet> => {
+  const { includeCalculated = false, includeEmpty = false } = options;
   const exportData: any = {};
 
   // Sort fields alphabetically by output name (which matches internal name except system fields)
@@ -29,7 +30,7 @@ export const prepareTabletForExport = (tablet: Tablet | any): Partial<Tablet> =>
   // Create a map of what we want to export
   TABLET_FIELDS.forEach(field => {
     // Skip calculated fields
-    if (field.isCalculated) return;
+    if (field.isCalculated && !includeCalculated) return;
 
     // Get value
     let value = tablet[field.fieldName];
@@ -40,12 +41,10 @@ export const prepareTabletForExport = (tablet: Tablet | any): Partial<Tablet> =>
       key = `_${key}`;
     }
 
-    // Only include if value is defined (or maybe we want to include nulls? 
-    // The previous implementation utilized destructing which includes everything. 
-    // Let's include if it exists in the tablet object.
+    const hasValue = value !== undefined && value !== null && value !== '';
 
-    if (value !== undefined) {
-      exportData[key] = value;
+    if (hasValue || includeEmpty) {
+      exportData[key] = (value === undefined || value === null) ? "" : value;
     }
   });
 

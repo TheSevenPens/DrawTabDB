@@ -539,9 +539,34 @@ const Catalog: React.FC = () => {
       <div className="flex flex-col gap-4">
         {/* Title & Search Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-baseline gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Catalog</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">{filteredTablets.length} of {tablets.length} tablets</p>
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <span>{filteredTablets.length} of {tablets.length} tablets</span>
+              {flaggedIds.length > 0 && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span className="font-medium text-primary-600 dark:text-primary-400">
+                    {flaggedIds.length} checked
+                  </span>
+                  <div className="flex items-center gap-2 ml-1">
+                    <button
+                      onClick={() => navigate('/compare')}
+                      className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium hover:underline flex items-center gap-1"
+                    >
+                      Compare
+                    </button>
+                    <button
+                      onClick={clearFlags}
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      title="Clear selection"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
@@ -1114,25 +1139,7 @@ const Catalog: React.FC = () => {
       </div>
 
       {/* Floating Action Button for Comparison */}
-      {flaggedIds.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300 flex flex-col gap-2 items-end">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2 rounded-xl shadow-2xl">
-            <button
-              onClick={clearFlags}
-              className="px-3 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              onClick={() => navigate('/compare')}
-              className="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 font-bold transition-transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <GitCompare size={20} />
-              <span>Compare ({flaggedIds.length})</span>
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Create Modal */}
       {showCreateDialog && newTabletData && (

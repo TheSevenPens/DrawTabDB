@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { TABLET_FIELDS } from '../tabletFields';
 import { Tablet } from '../types';
 import { prepareTabletForExport } from '../contexts/DataContext';
-import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson } from 'lucide-react';
+import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson, Copy, Check } from 'lucide-react';
 
 interface TabletDetailsDialogProps {
   isOpen: boolean;
@@ -65,6 +65,9 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const [showDisplayPanelTechDropdown, setShowDisplayPanelTechDropdown] = useState(false);
   const [showDisplayResolutionDropdown, setShowDisplayResolutionDropdown] = useState(false);
   const [showSupportsTouchDropdown, setShowSupportsTouchDropdown] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [includeCalculated, setIncludeCalculated] = useState(false);
+  const [includeEmpty, setIncludeEmpty] = useState(false);
 
   // Effect for handling dialog open/close state
   useEffect(() => {
@@ -323,9 +326,44 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/50 dark:bg-slate-900/50">
           {activeTab === 'JSON' ? (
             <div className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm min-h-full overflow-hidden flex flex-col">
-              <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">RAW DATA</h3>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-2 mb-4">
+                <h3 className="text-primary-600 dark:text-primary-400 font-bold uppercase text-[10px] tracking-widest hidden sm:block">RAW DATA</h3>
+                <div className="flex items-center gap-4 flex-1 sm:flex-none justify-end">
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={includeCalculated}
+                      onChange={e => setIncludeCalculated(e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
+                    />
+                    Include Calculated
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={includeEmpty}
+                      onChange={e => setIncludeEmpty(e.target.checked)}
+                      className="rounded border-slate-300 dark:border-slate-600 text-primary-600 focus:ring-primary-500 w-3.5 h-3.5"
+                    />
+                    Include Empty
+                  </label>
+                  <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                  <button
+                    onClick={() => {
+                      const jsonString = JSON.stringify(prepareTabletForExport(formData, { includeCalculated, includeEmpty }), null, 2);
+                      navigator.clipboard.writeText(jsonString);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors px-2 py-1 rounded bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700"
+                  >
+                    {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                    <span>{isCopied ? 'Copied!' : 'Copy JSON'}</span>
+                  </button>
+                </div>
+              </div>
               <pre className="flex-1 overflow-auto text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                {JSON.stringify(prepareTabletForExport(formData), null, 2)}
+                {JSON.stringify(prepareTabletForExport(formData, { includeCalculated, includeEmpty }), null, 2)}
               </pre>
             </div>
           ) : (
