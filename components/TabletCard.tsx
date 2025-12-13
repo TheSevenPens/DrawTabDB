@@ -229,9 +229,9 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, diagUni
 
           <button
             onClick={() => onViewDetails(tablet)}
-            className="flex items-center justify-center gap-2 px-3 py-1 bg-primary-50 hover:bg-primary-100 dark:bg-primary-600/10 dark:hover:bg-primary-600 text-primary-600 dark:text-primary-400 dark:hover:text-white text-xs font-medium rounded-lg transition-all border border-primary-200 dark:border-primary-500/20 hover:border-primary-300 dark:hover:border-primary-500"
+            title="View Details"
+            className="flex items-center justify-center w-6 h-6 bg-primary-50 hover:bg-primary-100 dark:bg-primary-600/10 dark:hover:bg-primary-600 text-primary-600 dark:text-primary-400 dark:hover:text-white rounded-lg transition-all border border-primary-200 dark:border-primary-500/20 hover:border-primary-300 dark:hover:border-primary-500"
           >
-            <span>Details</span>
             <MoreHorizontal size={14} />
           </button>
         </div>
