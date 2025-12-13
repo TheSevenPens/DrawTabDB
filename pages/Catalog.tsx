@@ -58,11 +58,12 @@ const ALL_FIELD_OPTIONS = TABLET_FIELDS
   .filter(f => !f.isSystem)
   .map(f => ({
     value: f.fieldName,
-    label: f.DisplayName
+    label: f.DisplayName,
+    category: f.Category || 'Other'
   }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-const AVAILABLE_COLUMNS = ALL_FIELD_OPTIONS.map(o => ({ id: o.value, label: o.label }));
+const AVAILABLE_COLUMNS = ALL_FIELD_OPTIONS.map(o => ({ id: o.value, label: o.label, category: o.category }));
 
 const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
   ModelId: '',
@@ -77,7 +78,7 @@ const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
 interface FieldMenuProps {
   onClose: () => void;
   onSelect: (fieldValue: keyof Tablet) => void;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; category?: string }>;
   excludeValues?: string[]; // To filter out already selected
   emptyMessage?: string;
 }
@@ -85,24 +86,55 @@ interface FieldMenuProps {
 const FieldSelectionMenu: React.FC<FieldMenuProps> = ({ onClose, onSelect, options, excludeValues = [], emptyMessage = "All options added" }) => {
   const availableOptions = options.filter(o => !excludeValues.includes(o.value));
 
+  // Group by category
+  const CATEGORY_ORDER = ['General', 'Physical', 'Digitizer', 'Display', 'System', 'Other'];
+  const grouped = availableOptions.reduce((acc, opt) => {
+    const cat = opt.category || 'Other';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(opt);
+    return acc;
+  }, {} as Record<string, typeof options>);
+
+  const activeCategories = CATEGORY_ORDER.filter(cat => grouped[cat] && grouped[cat].length > 0);
+  const hasMultipleCategories = activeCategories.length > 1;
+
   return (
     <>
       <div className="fixed inset-0 z-10" onClick={onClose} />
-      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[200px] max-h-60 overflow-y-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+      <div className={`
+        absolute top-full z-20 mt-1
+        bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 
+        rounded-xl shadow-xl p-3 animate-in fade-in zoom-in-95 duration-100
+        max-h-[80vh] overflow-y-auto
+        ${hasMultipleCategories ? 'flex gap-4 left-0' : 'flex flex-col min-w-[200px] left-0'}
+      `}
+        style={hasMultipleCategories ? { width: 'max-content', maxWidth: '90vw' } : {}}
+      >
         {availableOptions.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-slate-400 text-center italic">
+          <div className="px-3 py-2 text-xs text-slate-400 text-center italic w-full">
             {emptyMessage}
           </div>
         ) : (
-          availableOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => onSelect(opt.value as keyof Tablet)}
-              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
-            >
-              {opt.label}
-              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+          activeCategories.map(cat => (
+            <div key={cat} className={`${hasMultipleCategories ? 'w-40 flex-shrink-0' : 'w-full'}`}>
+              {hasMultipleCategories && (
+                <h4 className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1 tracking-wider">
+                  {cat}
+                </h4>
+              )}
+              <div className="flex flex-col gap-0">
+                {grouped[cat].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => onSelect(opt.value as keyof Tablet)}
+                    className="w-full text-left px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
+                  </button>
+                ))}
+              </div>
+            </div>
           ))
         )}
       </div>
@@ -1022,7 +1054,7 @@ const Catalog: React.FC = () => {
                       addColumn(field);
                       setShowColumnMenu(false);
                     }}
-                    options={AVAILABLE_COLUMNS.map(c => ({ value: c.id, label: c.label }))}
+                    options={AVAILABLE_COLUMNS.map(c => ({ value: c.id, label: c.label, category: c.category }))}
                     excludeValues={visibleColumns}
                     emptyMessage="All columns added"
                   />
