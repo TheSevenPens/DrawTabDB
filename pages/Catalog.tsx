@@ -435,11 +435,9 @@ const Catalog: React.FC = () => {
       <div className="flex flex-col gap-4">
         {/* Title & Search Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
+          <div className="flex items-baseline gap-3">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Catalog</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-slate-500 dark:text-slate-400">{filteredTablets.length} of {tablets.length} tablets</p>
-            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">{filteredTablets.length} of {tablets.length} tablets</p>
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
