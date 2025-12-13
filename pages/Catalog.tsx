@@ -106,10 +106,15 @@ const Catalog: React.FC = () => {
     field: string;
     order: 'asc' | 'desc';
   };
+
   const [sortCriteria, setSortCriteria] = useState<SortCriterion[]>([
     { id: 'default', field: 'ModelName', order: 'asc' }
   ]);
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  // Column Menu State
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const [openUnitMenuColId, setOpenUnitMenuColId] = useState<string | null>(null);
 
   // Create New Tablet State
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -130,7 +135,7 @@ const Catalog: React.FC = () => {
   const [isFilteringExpanded, setIsFilteringExpanded] = useState(true);
   const [isSortingExpanded, setIsSortingExpanded] = useState(true);
   const [isColumnsExpanded, setIsColumnsExpanded] = useState(true);
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
+
 
   const handleCreateNew = () => {
     // Initialize with template. ID and dates will be handled by context if we save.
@@ -853,18 +858,88 @@ const Catalog: React.FC = () => {
                   {visibleColumns.map(colId => {
                     const col = AVAILABLE_COLUMNS.find(c => c.id === colId);
                     if (!col) return null;
+
+                    // helper to render unit config within pill
+                    const renderUnitConfig = () => {
+                      if (colId === 'DigitizerDiag') {
+                        return (
+                          <div className="relative flex items-center">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
+                              className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[24px] text-center transition-colors"
+                            >
+                              {diagUnit.toUpperCase()}
+                            </button>
+                            {openUnitMenuColId === colId && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
+                                <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
+                                  <button onClick={() => { setDiagUnit('in'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${diagUnit === 'in' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>IN</button>
+                                  <button onClick={() => { setDiagUnit('mm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${diagUnit === 'mm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>MM</button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      }
+                      if (colId === 'DigitizerSize') {
+                        return (
+                          <div className="relative flex items-center">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
+                              className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[24px] text-center transition-colors"
+                            >
+                              {activeAreaUnit.toUpperCase()}
+                            </button>
+                            {openUnitMenuColId === colId && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
+                                <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
+                                  <button onClick={() => { setActiveAreaUnit('in'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${activeAreaUnit === 'in' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>IN</button>
+                                  <button onClick={() => { setActiveAreaUnit('mm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${activeAreaUnit === 'mm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>MM</button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      }
+                      if (colId === 'DigitizerResolution') {
+                        return (
+                          <div className="relative flex items-center">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenUnitMenuColId(openUnitMenuColId === colId ? null : colId); }}
+                              className="ml-1 px-1 py-0.5 rounded text-[10px] font-bold bg-white/50 hover:bg-white dark:bg-black/20 dark:hover:bg-black/40 min-w-[32px] text-center transition-colors"
+                            >
+                              {digitizerResUnit.toUpperCase()}
+                            </button>
+                            {openUnitMenuColId === colId && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setOpenUnitMenuColId(null)} />
+                                <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-1 min-w-[60px] flex flex-col">
+                                  <button onClick={() => { setDigitizerResUnit('lpi'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${digitizerResUnit === 'lpi' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>LPI</button>
+                                  <button onClick={() => { setDigitizerResUnit('lpmm'); setOpenUnitMenuColId(null); }} className={`text-left px-2 py-1 text-xs rounded hover:bg-slate-100 dark:hover:bg-slate-700 ${digitizerResUnit === 'lpmm' ? 'font-bold text-primary-600' : 'text-slate-700 dark:text-slate-300'}`}>LPmm</button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      }
+                      return null;
+                    };
+
                     return (
                       <div
                         key={col.id}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5 bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300"
                       >
                         {col.label}
+                        {renderUnitConfig()}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeColumn(col.id);
                           }}
-                          className="text-primary-400 hover:text-primary-600 dark:text-primary-500 dark:hover:text-primary-300 transition-colors"
+                          className="text-primary-400 hover:text-primary-600 dark:text-primary-500 dark:hover:text-primary-300 transition-colors ml-1"
                         >
                           <X size={12} />
                         </button>
@@ -914,41 +989,6 @@ const Catalog: React.FC = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Unit Toggles Row */}
-                {(visibleColumns.includes('DigitizerDiag') || visibleColumns.includes('DigitizerSize') || visibleColumns.includes('DigitizerResolution')) && (
-                  <div className="flex items-center gap-4 pt-2 border-t border-slate-200 dark:border-slate-800/50">
-                    {visibleColumns.includes('DigitizerDiag') && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Diag</span>
-                        <div className="flex bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
-                          <button onClick={() => setDiagUnit('in')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${diagUnit === 'in' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>IN</button>
-                          <button onClick={() => setDiagUnit('mm')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${diagUnit === 'mm' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>MM</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {visibleColumns.includes('DigitizerSize') && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Active Area</span>
-                        <div className="flex bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
-                          <button onClick={() => setActiveAreaUnit('in')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${activeAreaUnit === 'in' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>IN</button>
-                          <button onClick={() => setActiveAreaUnit('mm')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${activeAreaUnit === 'mm' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>MM</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {visibleColumns.includes('DigitizerResolution') && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Resolution</span>
-                        <div className="flex bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
-                          <button onClick={() => setDigitizerResUnit('lpi')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${digitizerResUnit === 'lpi' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>LPI</button>
-                          <button onClick={() => setDigitizerResUnit('lpmm')} className={`px-2 py-0.5 text-[10px] font-bold rounded ${digitizerResUnit === 'lpmm' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}>LPmm</button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
           </div>
