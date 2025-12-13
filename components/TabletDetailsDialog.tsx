@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Tablet } from '../types';
-import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info } from 'lucide-react';
+import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson } from 'lucide-react';
 
 interface TabletDetailsDialogProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface TabletDetailsDialogProps {
 }
 
 // Define fields that should not be editable manually
-const READ_ONLY_FIELDS = ['PixelDensity', 'DigitizerDiag', 'Age', 'id', 'CreateDate', 'ModifiedDate'];
+const READ_ONLY_FIELDS = ['PixelDensity', 'DigitizerDiag', 'DigitizerArea', 'Age', 'id', 'CreateDate', 'ModifiedDate'];
 
 // Predefined Options
 const BRAND_OPTIONS = ["WACOM", "HUION", "XPPEN", "XENCELABS", "UGEE", "SAMSUNG", "APPLE"];
@@ -38,13 +38,13 @@ const DISPLAY_RESOLUTION_OPTIONS = [
   ""
 ];
 
-type TabType = 'CORE' | 'DISPLAY' | 'META';
+type TabType = 'CORE' | 'DISPLAY' | 'META' | 'JSON';
 
-const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  tablet, 
-  onSave, 
+const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
+  isOpen,
+  onClose,
+  tablet,
+  onSave,
   initialIsEditing = false,
   onPrev,
   onNext,
@@ -54,7 +54,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Tablet>(tablet);
   const [activeTab, setActiveTab] = useState<TabType>('CORE');
-  
+
   // Dropdown states
   const [showBrandDropdown, setShowBrandDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
@@ -149,7 +149,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     CORE: [
       {
         title: "General Information",
-        fields: ["Brand", "Family", "ModelName", "ModelID", "LaunchYear", "Age", "Status", "Type", "Link", "Audience"]
+        fields: ["Brand", "Family", "ModelName", "ModelID", "LaunchYear", "Age", "Status", "Type", "Link", "IncludedPen", "Audience"]
       },
       {
         title: "Physical Dimensions",
@@ -157,7 +157,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       },
       {
         title: "Digitizer & Pen",
-        fields: ["DigitizerSize", "DigitizerDiag", "PressureLevels", "ReportRate", "DigitizerResolution", "IncludedPen", "PenTech", "Tilt", "MaxHover", "AccCenter", "AccCorner", "SupportsTouch"]
+        fields: ["DigitizerSize", "DigitizerDiag", "DigitizerArea", "PressureLevels", "ReportRate", "DigitizerResolution", "PenTech", "Tilt", "MaxHover", "AccCenter", "AccCorner", "SupportsTouch"]
       }
     ],
     DISPLAY: [
@@ -194,7 +194,8 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     DisplayViewingAngleHorizontal: 'deg',
     DisplayViewingAngleVertical: 'deg',
     Age: 'yrs',
-    MaxHover: 'mm'
+    MaxHover: 'mm',
+    DigitizerArea: 'cm²'
   };
 
   const getInputStyles = (fieldName: string, hasRightElement: boolean, isReadOnly: boolean) => {
@@ -204,15 +205,15 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
 
     // Add padding right if there's a unit or icon to prevent text overlap
     const baseStyles = `w-full rounded-lg px-2.5 py-1.5 text-sm transition-all focus:outline-none ${hasRightElement ? 'pr-10' : ''}`;
-    
+
     // If we are not editing, OR if the field is specifically read-only (calculated), show as disabled/static
     if (!isEditing || isReadOnly) {
-        return `${baseStyles} bg-slate-100 dark:bg-slate-800/50 border border-transparent text-slate-600 dark:text-white disabled:opacity-70 disabled:cursor-not-allowed`;
+      return `${baseStyles} bg-slate-100 dark:bg-slate-800/50 border border-transparent text-slate-600 dark:text-white disabled:opacity-70 disabled:cursor-not-allowed`;
     }
 
     // Editable styles
     if (hasChanged) {
-        return `${baseStyles} bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/50 text-amber-900 dark:text-amber-100 focus:border-amber-400 placeholder-amber-500/30`;
+      return `${baseStyles} bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/50 text-amber-900 dark:text-amber-100 focus:border-amber-400 placeholder-amber-500/30`;
     }
 
     return `${baseStyles} bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-primary-500 text-slate-900 dark:text-white`;
@@ -221,7 +222,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const dialogContent = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        
+
         {/* Header */}
         <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0">
           <div>
@@ -231,46 +232,46 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mt-0.5">{tablet.ModelID || "ID Not Set"}</p>
           </div>
-          
-          <div className="flex items-center gap-4">
-             {/* Navigation Buttons */}
-             {(onPrev || onNext) && (
-                <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 mr-2">
-                    <button 
-                        onClick={onPrev} 
-                        disabled={!hasPrev}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors rounded-md"
-                        title="Previous Tablet"
-                    >
-                        <ChevronLeft size={18} />
-                    </button>
-                    <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-0.5"></div>
-                    <button 
-                        onClick={onNext} 
-                        disabled={!hasNext}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors rounded-md"
-                        title="Next Tablet"
-                    >
-                        <ChevronRight size={18} />
-                    </button>
-                </div>
-             )}
 
-             {/* Edit Toggle Slider */}
-             <label className="flex items-center cursor-pointer select-none gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                <div className="relative">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={isEditing}
-                    onChange={() => setIsEditing(!isEditing)}
-                  />
-                  <div className="w-9 h-5 bg-slate-400 dark:bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600"></div>
-                </div>
-                <span className={`text-xs font-medium ${isEditing ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                  {isEditing ? 'Edit Mode' : 'Read Only'}
-                </span>
-              </label>
+          <div className="flex items-center gap-4">
+            {/* Navigation Buttons */}
+            {(onPrev || onNext) && (
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 mr-2">
+                <button
+                  onClick={onPrev}
+                  disabled={!hasPrev}
+                  className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors rounded-md"
+                  title="Previous Tablet"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="w-px h-4 bg-slate-300 dark:bg-slate-700 mx-0.5"></div>
+                <button
+                  onClick={onNext}
+                  disabled={!hasNext}
+                  className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors rounded-md"
+                  title="Next Tablet"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
+
+            {/* Edit Toggle Slider */}
+            <label className="flex items-center cursor-pointer select-none gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={isEditing}
+                  onChange={() => setIsEditing(!isEditing)}
+                />
+                <div className="w-9 h-5 bg-slate-400 dark:bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600"></div>
+              </div>
+              <span className={`text-xs font-medium ${isEditing ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                {isEditing ? 'Edit Mode' : 'Read Only'}
+              </span>
+            </label>
 
             <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
               <X size={20} />
@@ -280,261 +281,290 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
 
         {/* Tabs Header */}
         <div className="flex items-center px-6 border-b border-slate-200 dark:border-slate-800 gap-8 bg-white dark:bg-slate-900 shrink-0">
-          <button 
-            onClick={() => setActiveTab('CORE')} 
-            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'CORE' 
-                ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
+          <button
+            onClick={() => setActiveTab('CORE')}
+            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'CORE'
+              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
           >
             <LayoutGrid size={16} />
             Core Specs
           </button>
-          <button 
-            onClick={() => setActiveTab('DISPLAY')} 
-            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'DISPLAY' 
-                ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
+          <button
+            onClick={() => setActiveTab('DISPLAY')}
+            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'DISPLAY'
+              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
           >
             <Monitor size={16} />
             Display
           </button>
-          <button 
-            onClick={() => setActiveTab('META')} 
-            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
-                activeTab === 'META' 
-                ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-            }`}
+          <button
+            onClick={() => setActiveTab('META')}
+            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'META'
+              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
           >
             <Info size={16} />
             Meta Data
+          </button>
+          <button
+            onClick={() => setActiveTab('JSON')}
+            className={`py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${activeTab === 'JSON'
+              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+          >
+            <FileJson size={16} />
+            Raw JSON
           </button>
         </div>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/50 dark:bg-slate-900/50">
-            {tabConfig[activeTab].map(group => (
-                <div key={group.title} className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">{group.title}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {group.fields.map(field => {
-                            const unit = fieldUnits[field];
-                            const isLink = field === 'Link';
-                            const isReadOnly = READ_ONLY_FIELDS.includes(field);
-                            
-                            // Field Type flags
-                            const isDigitizerDiag = field === 'DigitizerDiag';
-                            const isDigitizerResolution = field === 'DigitizerResolution';
-                            const isDigitizerSize = field === 'DigitizerSize';
-                            const isBrand = field === 'Brand';
-                            const isType = field === 'Type';
-                            const isPenTech = field === 'PenTech';
-                            const isLamination = field === 'Lamination';
-                            const isAntiGlare = field === 'AntiGlare';
-                            const isAudience = field === 'Audience';
-                            const isDisplayPanelTech = field === 'DisplayPanelTech';
-                            const isDisplayResolution = field === 'DisplayResolution';
-                            const isSupportsTouch = field === 'SupportsTouch';
-                            const isInternalId = field === 'id';
-                            const isDevSize = field === 'DevSize';
-                            const isDevWeight = field === 'DevWeight';
-                            
-                            const hasDropdown = isBrand || isType || isPenTech || isLamination || isAntiGlare || isAudience || isDisplayPanelTech || isDisplayResolution || isSupportsTouch;
+          {activeTab === 'JSON' ? (
+            <div className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm min-h-full overflow-hidden flex flex-col">
+              <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">RAW DATA</h3>
+              <pre className="flex-1 overflow-auto text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                {JSON.stringify(formData, null, 2)}
+              </pre>
+            </div>
+          ) : (
+            tabConfig[activeTab as keyof typeof tabConfig].map(group => (
+              <div key={group.title} className="bg-white dark:bg-slate-800/40 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 className="text-primary-600 dark:text-primary-400 font-bold mb-4 uppercase text-[10px] tracking-widest border-b border-slate-100 dark:border-slate-700/50 pb-2">{group.title}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {group.fields.map(field => {
+                    const unit = fieldUnits[field];
+                    const isLink = field === 'Link';
+                    const isReadOnly = READ_ONLY_FIELDS.includes(field);
 
-                            return (
-                                <div 
-                                    key={field} 
-                                    className={`space-y-1 group ${isLink || isInternalId ? 'col-span-full md:col-span-2' : ''}`}
-                                >
-                                    <label className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
-                                        {field}
-                                        {isReadOnly && <span className="ml-1 text-[9px] text-slate-400 dark:text-slate-600">(Calculated/System)</span>}
-                                    </label>
-                                    
-                                    {isLink ? (
-                                        <div className="flex gap-2">
-                                            <div className="relative flex-1">
-                                                 <input
-                                                    type="text"
-                                                    name={field}
-                                                    value={(formData as any)[field] || ''}
-                                                    onChange={handleChange}
-                                                    disabled={!isEditing || isReadOnly}
-                                                    className={getInputStyles(field, !!unit, isReadOnly)}
-                                                />
-                                            </div>
-                                            <a
-                                                href={(formData as any)[field]}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className={`shrink-0 w-10 rounded-lg border flex items-center justify-center transition-colors ${
-                                                     (formData as any)[field] 
-                                                        ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-500 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' 
-                                                        : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400 dark:text-slate-600 cursor-not-allowed pointer-events-none'
-                                                }`}
-                                                title="Open Link"
-                                            >
-                                                <ExternalLink size={16} />
-                                            </a>
-                                        </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                name={field}
-                                                value={(formData as any)[field] || ''}
-                                                onChange={handleChange}
-                                                disabled={!isEditing || isReadOnly}
-                                                className={`${getInputStyles(field, !!unit || hasDropdown, isReadOnly)} ${isInternalId ? 'font-mono text-xs' : ''}`}
-                                                onFocus={() => {
-                                                  if (isBrand && isEditing) setShowBrandDropdown(true);
-                                                  if (isType && isEditing) setShowTypeDropdown(true);
-                                                  if (isPenTech && isEditing) setShowPenTechDropdown(true);
-                                                  if (isLamination && isEditing) setShowLaminationDropdown(true);
-                                                  if (isAntiGlare && isEditing) setShowAntiGlareDropdown(true);
-                                                  if (isAudience && isEditing) setShowAudienceDropdown(true);
-                                                  if (isDisplayPanelTech && isEditing) setShowDisplayPanelTechDropdown(true);
-                                                  if (isDisplayResolution && isEditing) setShowDisplayResolutionDropdown(true);
-                                                  if (isSupportsTouch && isEditing) setShowSupportsTouchDropdown(true);
-                                                }}
-                                                onBlur={() => {
-                                                  if (isBrand) setTimeout(() => setShowBrandDropdown(false), 200);
-                                                  if (isType) setTimeout(() => setShowTypeDropdown(false), 200);
-                                                  if (isPenTech) setTimeout(() => setShowPenTechDropdown(false), 200);
-                                                  if (isLamination) setTimeout(() => setShowLaminationDropdown(false), 200);
-                                                  if (isAntiGlare) setTimeout(() => setShowAntiGlareDropdown(false), 200);
-                                                  if (isAudience) setTimeout(() => setShowAudienceDropdown(false), 200);
-                                                  if (isDisplayPanelTech) setTimeout(() => setShowDisplayPanelTechDropdown(false), 200);
-                                                  if (isDisplayResolution) setTimeout(() => setShowDisplayResolutionDropdown(false), 200);
-                                                  if (isSupportsTouch) setTimeout(() => setShowSupportsTouchDropdown(false), 200);
-                                                }}
-                                                autoComplete={hasDropdown ? "off" : undefined}
-                                            />
-                                            
-                                            {hasDropdown && isEditing && (
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                                    <ChevronDown size={14} />
-                                                </div>
-                                            )}
+                    // Field Type flags
+                    const isDigitizerDiag = field === 'DigitizerDiag';
+                    const isDigitizerResolution = field === 'DigitizerResolution';
+                    const isDigitizerSize = field === 'DigitizerSize';
+                    const isBrand = field === 'Brand';
+                    const isType = field === 'Type';
+                    const isPenTech = field === 'PenTech';
+                    const isLamination = field === 'Lamination';
+                    const isAntiGlare = field === 'AntiGlare';
+                    const isAudience = field === 'Audience';
+                    const isDisplayPanelTech = field === 'DisplayPanelTech';
+                    const isDisplayResolution = field === 'DisplayResolution';
+                    const isSupportsTouch = field === 'SupportsTouch';
+                    const isInternalId = field === 'id';
+                    const isDevSize = field === 'DevSize';
+                    const isDevWeight = field === 'DevWeight';
 
-                                            {/* Dropdowns */}
-                                            {isBrand && showBrandDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {BRAND_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleBrandSelect(opt); }}>{opt}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isType && showTypeDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {TYPE_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleTypeSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isPenTech && showPenTechDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {PENTECH_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handlePenTechSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isLamination && showLaminationDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {LAMINATION_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleLaminationSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isAntiGlare && showAntiGlareDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {ANTIGLARE_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleAntiGlareSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isAudience && showAudienceDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {AUDIENCE_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleAudienceSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isDisplayPanelTech && showDisplayPanelTechDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {DISPLAY_PANEL_TECH_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleDisplayPanelTechSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isDisplayResolution && showDisplayResolutionDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {DISPLAY_RESOLUTION_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleDisplayResolutionSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {isSupportsTouch && showSupportsTouchDropdown && isEditing && (
-                                                <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                                    {SUPPORTSTOUCH_OPTIONS.map(opt => (
-                                                        <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleSupportsTouchSelect(opt); }}>{opt || '(None)'}</div>
-                                                    ))}
-                                                </div>
-                                            )}
 
-                                            {unit && (
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500 font-medium pointer-events-none select-none">
-                                                    {unit}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
+                    const hasDropdown = isBrand || isType || isPenTech || isLamination || isAntiGlare || isAudience || isDisplayPanelTech || isDisplayResolution || isSupportsTouch;
 
-                                    {/* Helpers */}
-                                    {isDigitizerDiag && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                                        <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) / 25.4).toFixed(2)}″</p>
-                                    )}
-                                    {isDigitizerResolution && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                                        <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {Math.round(parseFloat((formData as any)[field]) * 25.4)} LPI</p>
-                                    )}
-                                    {isDevWeight && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                                        <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) * 0.00220462).toFixed(2)} lbs</p>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                    let calculatedValue: string | undefined = undefined;
+                    if (field === 'DigitizerArea') {
+                      const match = ((formData as any).DigitizerSize || '').match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
+                      if (match) {
+                        const area = (parseFloat(match[1]) * parseFloat(match[2])) / 100;
+                        calculatedValue = isNaN(area) ? '' : area.toFixed(2);
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={field}
+                        className={`space-y-1 group ${isLink || isInternalId ? 'col-span-full md:col-span-2' : ''}`}
+                      >
+                        <label className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
+                          {field}
+                          {isReadOnly && <span className="ml-1 text-[9px] text-slate-400 dark:text-slate-600">(Calculated/System)</span>}
+                        </label>
+
+                        {isLink ? (
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                name={field}
+                                value={(formData as any)[field] || ''}
+                                onChange={handleChange}
+                                disabled={!isEditing || isReadOnly}
+                                className={getInputStyles(field, !!unit, isReadOnly)}
+                              />
+                            </div>
+                            <a
+                              href={(formData as any)[field]}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`shrink-0 w-10 rounded-lg border flex items-center justify-center transition-colors ${(formData as any)[field]
+                                ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 dark:hover:border-slate-500 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                                : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 text-slate-400 dark:text-slate-600 cursor-not-allowed pointer-events-none'
+                                }`}
+                              title="Open Link"
+                            >
+                              <ExternalLink size={16} />
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <input
+                              type="text"
+                              name={field}
+                              value={calculatedValue ?? (formData as any)[field] ?? ''}
+                              onChange={handleChange}
+                              disabled={!isEditing || isReadOnly}
+                              className={`${getInputStyles(field, !!unit || hasDropdown, isReadOnly)} ${isInternalId ? 'font-mono text-xs' : ''}`}
+                              onFocus={() => {
+                                if (isBrand && isEditing) setShowBrandDropdown(true);
+                                if (isType && isEditing) setShowTypeDropdown(true);
+                                if (isPenTech && isEditing) setShowPenTechDropdown(true);
+                                if (isLamination && isEditing) setShowLaminationDropdown(true);
+                                if (isAntiGlare && isEditing) setShowAntiGlareDropdown(true);
+                                if (isAudience && isEditing) setShowAudienceDropdown(true);
+                                if (isDisplayPanelTech && isEditing) setShowDisplayPanelTechDropdown(true);
+                                if (isDisplayResolution && isEditing) setShowDisplayResolutionDropdown(true);
+                                if (isSupportsTouch && isEditing) setShowSupportsTouchDropdown(true);
+                              }}
+                              onBlur={() => {
+                                if (isBrand) setTimeout(() => setShowBrandDropdown(false), 200);
+                                if (isType) setTimeout(() => setShowTypeDropdown(false), 200);
+                                if (isPenTech) setTimeout(() => setShowPenTechDropdown(false), 200);
+                                if (isLamination) setTimeout(() => setShowLaminationDropdown(false), 200);
+                                if (isAntiGlare) setTimeout(() => setShowAntiGlareDropdown(false), 200);
+                                if (isAudience) setTimeout(() => setShowAudienceDropdown(false), 200);
+                                if (isDisplayPanelTech) setTimeout(() => setShowDisplayPanelTechDropdown(false), 200);
+                                if (isDisplayResolution) setTimeout(() => setShowDisplayResolutionDropdown(false), 200);
+                                if (isSupportsTouch) setTimeout(() => setShowSupportsTouchDropdown(false), 200);
+                              }}
+                              autoComplete={hasDropdown ? "off" : undefined}
+                            />
+
+                            {hasDropdown && isEditing && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                <ChevronDown size={14} />
+                              </div>
+                            )}
+
+                            {/* Dropdowns */}
+                            {isBrand && showBrandDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {BRAND_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleBrandSelect(opt); }}>{opt}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isType && showTypeDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {TYPE_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleTypeSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isPenTech && showPenTechDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {PENTECH_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handlePenTechSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isLamination && showLaminationDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {LAMINATION_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleLaminationSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isAntiGlare && showAntiGlareDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {ANTIGLARE_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleAntiGlareSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isAudience && showAudienceDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {AUDIENCE_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleAudienceSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isDisplayPanelTech && showDisplayPanelTechDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {DISPLAY_PANEL_TECH_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleDisplayPanelTechSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isDisplayResolution && showDisplayResolutionDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {DISPLAY_RESOLUTION_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleDisplayResolutionSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+                            {isSupportsTouch && showSupportsTouchDropdown && isEditing && (
+                              <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {SUPPORTSTOUCH_OPTIONS.map(opt => (
+                                  <div key={opt} className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-600/20 hover:text-primary-900 dark:hover:text-white cursor-pointer transition-colors" onMouseDown={(e) => { e.preventDefault(); handleSupportsTouchSelect(opt); }}>{opt || '(None)'}</div>
+                                ))}
+                              </div>
+                            )}
+
+                            {unit && (
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-slate-500 font-medium pointer-events-none select-none">
+                                {unit}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Helpers */}
+                        {isDigitizerDiag && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) / 25.4).toFixed(2)}″</p>
+                        )}
+                        {isDigitizerResolution && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {Math.round(parseFloat((formData as any)[field]) * 25.4)} LPI</p>
+                        )}
+                        {isDevWeight && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) * 0.00220462).toFixed(2)} lbs</p>
+                        )}
+                        {field === 'DigitizerArea' && calculatedValue && !isNaN(parseFloat(calculatedValue)) && (
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat(calculatedValue) * 0.15500031).toFixed(2)} in²</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-            ))}
+              </div>
+
+            ))
+          )}
         </div>
 
         {/* Footer */}
         {isEditing && (
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-3 shrink-0 animate-in slide-in-from-bottom-2">
-                <button 
-                    onClick={() => { 
-                         if (initialIsEditing) onClose();
-                         else {
-                            setIsEditing(false); 
-                            setFormData(tablet);
-                         }
-                    }}
-                    className="px-4 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white text-sm font-medium"
-                >
-                    Cancel
-                </button>
-                <button 
-                    onClick={handleSave}
-                    className="px-5 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-lg flex items-center gap-2 shadow-lg shadow-primary-900/20"
-                >
-                    <Save size={16} />
-                    Save Changes
-                </button>
-            </div>
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-3 shrink-0 animate-in slide-in-from-bottom-2">
+            <button
+              onClick={() => {
+                if (initialIsEditing) onClose();
+                else {
+                  setIsEditing(false);
+                  setFormData(tablet);
+                }
+              }}
+              className="px-4 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-5 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-lg flex items-center gap-2 shadow-lg shadow-primary-900/20"
+            >
+              <Save size={16} />
+              Save Changes
+            </button>
+          </div>
         )}
       </div>
     </div>
