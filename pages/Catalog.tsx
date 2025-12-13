@@ -74,6 +74,42 @@ const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
   ModelAudience: 'CONSUMER'
 };
 
+interface FieldMenuProps {
+  onClose: () => void;
+  onSelect: (fieldValue: keyof Tablet) => void;
+  options: Array<{ value: string; label: string }>;
+  excludeValues?: string[]; // To filter out already selected
+  emptyMessage?: string;
+}
+
+const FieldSelectionMenu: React.FC<FieldMenuProps> = ({ onClose, onSelect, options, excludeValues = [], emptyMessage = "All options added" }) => {
+  const availableOptions = options.filter(o => !excludeValues.includes(o.value));
+
+  return (
+    <>
+      <div className="fixed inset-0 z-10" onClick={onClose} />
+      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[200px] max-h-60 overflow-y-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+        {availableOptions.length === 0 ? (
+          <div className="px-3 py-2 text-xs text-slate-400 text-center italic">
+            {emptyMessage}
+          </div>
+        ) : (
+          availableOptions.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => onSelect(opt.value as keyof Tablet)}
+              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
+            >
+              {opt.label}
+              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ))
+        )}
+      </div>
+    </>
+  );
+};
+
 const Catalog: React.FC = () => {
   const navigate = useNavigate();
   const { tablets, addTablet, updateTablet, flaggedIds, clearFlags } = useData();
@@ -647,24 +683,11 @@ const Catalog: React.FC = () => {
                     </button>
 
                     {showFieldMenu && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setShowFieldMenu(false)}
-                        />
-                        <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[200px] max-h-60 overflow-y-auto flex flex-col gap-0.5">
-                          {ALL_FIELD_OPTIONS.map(field => (
-                            <button
-                              key={field.value}
-                              onClick={() => selectField(field.value as keyof Tablet)}
-                              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
-                            >
-                              {field.label}
-                              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </button>
-                          ))}
-                        </div>
-                      </>
+                      <FieldSelectionMenu
+                        onClose={() => setShowFieldMenu(false)}
+                        onSelect={selectField}
+                        options={ALL_FIELD_OPTIONS}
+                      />
                     )}
                   </div>
                 )}
@@ -824,30 +847,16 @@ const Catalog: React.FC = () => {
 
                   {/* Add Sort Menu */}
                   {showSortMenu && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
-                      <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[180px] max-h-60 overflow-y-auto flex flex-col gap-0.5">
-                        {sortOptions.filter(opt => !sortCriteria.find(sc => sc.field === opt.value)).length === 0 ? (
-                          <div className="px-3 py-2 text-xs text-slate-400 text-center italic">
-                            All sort options added
-                          </div>
-                        ) : (
-                          sortOptions.filter(opt => !sortCriteria.find(sc => sc.field === opt.value)).map(opt => (
-                            <button
-                              key={opt.value}
-                              onClick={() => {
-                                setSortCriteria(prev => [...prev, { id: Date.now().toString(), field: opt.value, order: 'asc' }]);
-                                setShowSortMenu(false);
-                              }}
-                              className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
-                            >
-                              {opt.label}
-                              <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </>
+                    <FieldSelectionMenu
+                      onClose={() => setShowSortMenu(false)}
+                      onSelect={(field) => {
+                        setSortCriteria(prev => [...prev, { id: Date.now().toString(), field, order: 'asc' }]);
+                        setShowSortMenu(false);
+                      }}
+                      options={sortOptions}
+                      excludeValues={sortCriteria.map(sc => sc.field)}
+                      emptyMessage="All sort options added"
+                    />
                   )}
                 </div>
               </div>
@@ -1007,33 +1016,16 @@ const Catalog: React.FC = () => {
 
                 {/* Add Menu Dropdown */}
                 {showColumnMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setShowColumnMenu(false)}
-                    />
-                    <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1 min-w-[200px] max-h-60 overflow-y-auto flex flex-col gap-0.5">
-                      {AVAILABLE_COLUMNS.filter(c => !visibleColumns.includes(c.id)).length === 0 ? (
-                        <div className="px-3 py-2 text-xs text-slate-400 text-center italic">
-                          All columns added
-                        </div>
-                      ) : (
-                        AVAILABLE_COLUMNS.filter(c => !visibleColumns.includes(c.id)).map(col => (
-                          <button
-                            key={col.id}
-                            onClick={() => {
-                              addColumn(col.id);
-                              setShowColumnMenu(false);
-                            }}
-                            className="text-left px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
-                          >
-                            {col.label}
-                            <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </>
+                  <FieldSelectionMenu
+                    onClose={() => setShowColumnMenu(false)}
+                    onSelect={(field) => {
+                      addColumn(field);
+                      setShowColumnMenu(false);
+                    }}
+                    options={AVAILABLE_COLUMNS.map(c => ({ value: c.id, label: c.label }))}
+                    excludeValues={visibleColumns}
+                    emptyMessage="All columns added"
+                  />
                 )}
               </div>
             </div>
