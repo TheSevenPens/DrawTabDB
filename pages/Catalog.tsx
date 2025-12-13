@@ -2,56 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import TabletCard from '../components/TabletCard';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
-import { Tablet } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { Tablet, Filter as FilterType, TextCondition, NumericCondition, SortCriterion, FilterFieldType } from '../types';
 import { TABLET_FIELDS } from '../tabletFields';
 import { Search, Filter, ArrowUp, ArrowDown, Database, Settings, ChevronUp, ChevronDown, X, Plus, ArrowUpDown, GitCompare } from 'lucide-react';
+import { useTabletFilters } from '../hooks/useTabletFilters';
+import { useTabletSort } from '../hooks/useTabletSort';
 
-type FilterFieldType = 'text' | 'numeric';
-type TextCondition = 'equals' | 'contains' | 'beginswith' | 'endswith';
-type NumericCondition = 'equals' | 'lt' | 'lte' | 'gt' | 'gte' | 'range';
 
-interface Filter {
-  id: string;
-  field: keyof Tablet;
-  condition: TextCondition | NumericCondition;
-  value: string;
-  value2?: string; // For range condition
-}
-
-const getFieldLabel = (key: string) => TABLET_FIELDS.find(f => f.fieldName === key)?.DisplayName || key;
-
-const NUMERIC_FIELDS = new Set<keyof Tablet>([
-  'ModelLaunchYear',
-  'ModelAge',
-  'DigitizerDiagonal',
-  'DigitizerPressureLevels',
-  'DigitizerReportRate',
-  'PhysicalWeight',
-  'DisplayPixelDensity',
-  'AspectRatio',
-  'DigitizerResolution',
-  'DisplaySize',
-  'DisplayRefreshRate',
-  'DisplayResponseTime',
-  'DisplayBrightness',
-  'DigitizerTilt',
-  'DigitizerMaxHover'
-]);
-import { useNavigate } from 'react-router-dom';
-
-const parseSearchQuery = (query: string): string[] => {
-  const terms: string[] = [];
-  // Regex matches: quoted strings (group 1) OR non-whitespace sequences (group 2)
-  const regex = /"([^"]+)"|(\S+)/g;
-  let match;
-  while ((match = regex.exec(query)) !== null) {
-    const term = match[1] || match[2];
-    if (term) {
-      terms.push(term.toLowerCase());
-    }
-  }
-  return terms;
-};
 
 // Shared definition for all field selection dropdowns
 const ALL_FIELD_OPTIONS = TABLET_FIELDS
@@ -75,79 +33,13 @@ const NEW_TABLET_TEMPLATE: Partial<Tablet> = {
   ModelAudience: 'CONSUMER'
 };
 
-interface FieldMenuProps {
-  onClose: () => void;
-  onSelect: (fieldValue: keyof Tablet) => void;
-  options: Array<{ value: string; label: string; category?: string }>;
-  excludeValues?: string[]; // To filter out already selected
-  emptyMessage?: string;
-}
-
-const FieldSelectionMenu: React.FC<FieldMenuProps> = ({ onClose, onSelect, options, excludeValues = [], emptyMessage = "All options added" }) => {
-  const availableOptions = options.filter(o => !excludeValues.includes(o.value));
-
-  // Group by category
-  const CATEGORY_ORDER = ['General', 'Physical', 'Digitizer', 'Display', 'System', 'Other'];
-  const grouped = availableOptions.reduce((acc, opt) => {
-    const cat = opt.category || 'Other';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(opt);
-    return acc;
-  }, {} as Record<string, typeof options>);
-
-  const activeCategories = CATEGORY_ORDER.filter(cat => grouped[cat] && grouped[cat].length > 0);
-  const hasMultipleCategories = activeCategories.length > 1;
-
-  return (
-    <>
-      <div className="fixed inset-0 z-10" onClick={onClose} />
-      <div className={`
-        bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 
-        rounded-xl shadow-xl p-3 animate-in fade-in zoom-in-95 duration-100
-        max-h-[80vh] overflow-y-auto
-        ${hasMultipleCategories
-          ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex gap-4'
-          : 'absolute top-full left-0 z-20 mt-1 flex flex-col min-w-[200px]'}
-      `}
-        style={hasMultipleCategories ? { width: 'max-content', maxWidth: '90vw' } : {}}
-      >
-        {availableOptions.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-slate-400 text-center italic w-full">
-            {emptyMessage}
-          </div>
-        ) : (
-          activeCategories.map(cat => (
-            <div key={cat} className={`${hasMultipleCategories ? 'w-40 flex-shrink-0' : 'w-full'}`}>
-              {hasMultipleCategories && (
-                <h4 className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 mb-2 border-b border-slate-100 dark:border-slate-800 pb-1 tracking-wider">
-                  {cat}
-                </h4>
-              )}
-              <div className="flex flex-col gap-0">
-                {grouped[cat].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => onSelect(opt.value as keyof Tablet)}
-                    className="w-full text-left px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg transition-colors flex items-center justify-between group"
-                  >
-                    <span className="truncate">{opt.label}</span>
-                    <Plus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </>
-  );
-};
+import FieldSelectionMenu from '../components/FieldSelectionMenu';
 
 const Catalog: React.FC = () => {
   const navigate = useNavigate();
   const { tablets, addTablet, updateTablet, flaggedIds, clearFlags } = useData();
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Filter[]>([]);
+  const [filters, setFilters] = useState<FilterType[]>([]);
   const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
   const [editingFilterPillId, setEditingFilterPillId] = useState<string | null>(null);
   const [showFieldMenu, setShowFieldMenu] = useState(false);
@@ -163,16 +55,17 @@ const Catalog: React.FC = () => {
   const [editingPillValue2, setEditingPillValue2] = useState('');
 
 
-  // Sorting State
-  type SortCriterion = {
-    id: string;
-    field: string;
-    order: 'asc' | 'desc';
-  };
 
+  // Sorting State
   const [sortCriteria, setSortCriteria] = useState<SortCriterion[]>([
     { id: 'default', field: 'ModelName', order: 'asc' }
   ]);
+
+  const { filteredTablets: filteredResults, getFieldType } = useTabletFilters(tablets, filters, search);
+  const filteredTablets = useTabletSort(filteredResults, sortCriteria);
+
+  const sortOptions = ALL_FIELD_OPTIONS;
+
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   // Column Menu State
@@ -289,7 +182,7 @@ const Catalog: React.FC = () => {
       setEditingFilterId(null);
     } else {
       // Add new filter
-      const filter: Filter = {
+      const filter: FilterType = {
         id: Date.now().toString(),
         field: newFilterField,
         condition: newFilterCondition,
@@ -309,7 +202,7 @@ const Catalog: React.FC = () => {
     setFilters(prev => prev.filter(f => f.id !== id));
   };
 
-  const editFilter = (filter: Filter) => {
+  const editFilter = (filter: FilterType) => {
     setEditingPillField(filter.field);
     setEditingPillCondition(filter.condition);
     setEditingPillValue(filter.value);
@@ -322,7 +215,7 @@ const Catalog: React.FC = () => {
 
     if (editingFilterPillId === 'new') {
       // Creating new filter
-      const filter: Filter = {
+      const filter: FilterType = {
         id: Date.now().toString(),
         field: editingPillField,
         condition: editingPillCondition,
@@ -397,121 +290,9 @@ const Catalog: React.FC = () => {
   };
 
 
-  const getFieldType = (field: keyof Tablet): FilterFieldType => {
-    return NUMERIC_FIELDS.has(field) ? 'numeric' : 'text';
-  };
-
-  const sortOptions = ALL_FIELD_OPTIONS;
-
-  const searchTerms = useMemo(() => parseSearchQuery(search), [search]);
 
   // Filtering & Sorting
-  const filteredTablets = useMemo(() => {
-    const filtered = tablets.filter(tablet => {
-      const modelName = tablet.ModelName.toLowerCase();
-      const modelId = tablet.ModelId.toLowerCase();
-      const brand = tablet.ModelBrand.toLowerCase();
 
-      const matchesSearch = searchTerms.length === 0 || searchTerms.every(term =>
-        modelName.includes(term) || modelId.includes(term) || brand.includes(term)
-      );
-
-      const matchesFilters = filters.every(filter => {
-        const fieldValue = tablet[filter.field];
-        if (!fieldValue) return false;
-
-        const fieldType = getFieldType(filter.field);
-        const value = fieldValue.toString().toLowerCase();
-        const filterValue = filter.value.toLowerCase();
-
-        if (fieldType === 'text') {
-          const condition = filter.condition as TextCondition;
-          switch (condition) {
-            case 'equals':
-              return value === filterValue;
-            case 'contains':
-              return value.includes(filterValue);
-            case 'beginswith':
-              return value.startsWith(filterValue);
-            case 'endswith':
-              return value.endsWith(filterValue);
-            default:
-              return true;
-          }
-        } else {
-          const numValue = parseFloat(value);
-          const numFilter = parseFloat(filter.value);
-          if (isNaN(numValue)) return false;
-
-          const condition = filter.condition as NumericCondition;
-          switch (condition) {
-            case 'equals':
-              return numValue === numFilter;
-            case 'lt':
-              return numValue < numFilter;
-            case 'lte':
-              return numValue <= numFilter;
-            case 'gt':
-              return numValue > numFilter;
-            case 'gte':
-              return numValue >= numFilter;
-            case 'range':
-              const numFilter2 = filter.value2 ? parseFloat(filter.value2) : numFilter;
-              return numValue >= Math.min(numFilter, numFilter2) && numValue <= Math.max(numFilter, numFilter2);
-            default:
-              return true;
-          }
-        }
-      });
-      return matchesSearch && matchesFilters;
-    });
-
-    return filtered.sort((a, b) => {
-      for (const criterion of sortCriteria) {
-        let valA: string | number | number = '';
-        let valB: string | number | number = '';
-        const field = criterion.field;
-
-        switch (field) {
-          case 'ModelLaunchYear':
-            valA = a.ModelLaunchYear ? parseInt(a.ModelLaunchYear) : -1;
-            valB = b.ModelLaunchYear ? parseInt(b.ModelLaunchYear) : -1;
-            break;
-          case 'ModelAge':
-            valA = a.ModelAge ? parseInt(a.ModelAge) : -1;
-            valB = b.ModelAge ? parseInt(b.ModelAge) : -1;
-            break;
-          case 'DigitizerDiagonal':
-            valA = a.DigitizerDiagonal ? parseFloat(a.DigitizerDiagonal) : -1;
-            valB = b.DigitizerDiagonal ? parseFloat(b.DigitizerDiagonal) : -1;
-            break;
-          case 'AspectRatio':
-            const getRatio = (size?: string) => {
-              if (!size) return -1;
-              const match = size.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
-              if (match) {
-                const w = parseFloat(match[1]);
-                const h = parseFloat(match[2]);
-                return h > 0 ? w / h : -1;
-              }
-              return -1;
-            };
-            valA = getRatio(a.DigitizerDimensions);
-            valB = getRatio(b.DigitizerDimensions);
-            break;
-          default:
-            // Default string comparison for other fields
-            // Use keyof Tablet assertion safely
-            valA = (a[field as keyof Tablet] || '').toString().toLowerCase();
-            valB = (b[field as keyof Tablet] || '').toString().toLowerCase();
-        }
-
-        if (valA < valB) return criterion.order === 'asc' ? -1 : 1;
-        if (valA > valB) return criterion.order === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [searchTerms, filters, tablets, sortCriteria]);
 
   // Derived state for details navigation
   const detailIndex = useMemo(() => {
