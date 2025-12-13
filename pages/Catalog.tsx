@@ -468,7 +468,7 @@ const Catalog: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
 
           {/* Filtering Section */}
-          <div className={`xl:col-span-2 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isFilteringExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
+          <div className={`xl:col-span-4 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isFilteringExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
             <div
               className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isFilteringExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
               onClick={() => setIsFilteringExpanded(!isFilteringExpanded)}
@@ -750,7 +750,7 @@ const Catalog: React.FC = () => {
           </div>
 
           {/* Sorting Section */}
-          <div className={`xl:col-span-2 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isSortingExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
+          <div className={`xl:col-span-4 bg-slate-100 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col transition-all duration-300 ${isSortingExpanded ? 'p-2 gap-2' : 'p-2 gap-0'}`}>
             <div
               className={`flex items-center justify-between text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white ${isSortingExpanded ? 'border-b border-slate-200 dark:border-slate-800/50 pb-1.5' : ''}`}
               onClick={() => setIsSortingExpanded(!isSortingExpanded)}
