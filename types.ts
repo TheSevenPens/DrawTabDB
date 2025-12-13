@@ -16,6 +16,7 @@ export interface Tablet {
 
   PhysicalDimensions?: string;
   PhysicalWeight?: string;
+  PhysicalWeightInclStand?: string;
 
   DigitizerDimensions?: string;
   DigitizerDiagonal?: string; // Calculated Diagonal mm
@@ -43,7 +44,7 @@ export interface Tablet {
   DisplayPanelTech?: string;
   DisplayAntiGlare?: string;
   DisplayLamination?: string;
-  DisplayXPPI?: string; // Calculated PPI
+  DisplayPixelDensity?: string; // Calculated PPI
 
   ModelAge?: string; // Calculated Age in years
   AspectRatio?: string; // Calculated Aspect Ratio

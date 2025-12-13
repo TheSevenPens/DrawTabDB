@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Tablet } from '../types';
+import { TABLET_FIELDS } from '../tabletFields';
 
 interface DataContextType {
   tablets: Tablet[];
@@ -19,64 +20,42 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Helper to prepare tablet data for export/preview (strip calculated, rename metadata, sort keys)
 export const prepareTabletForExport = (tablet: Tablet | any): Partial<Tablet> => {
-  const {
-    // Calculated Fields
-    DisplayXPPI,
-    DigitizerDiagonal,
-    ModelAge,
-    AspectRatio,
-    DigitizerArea,
+  const exportData: any = {};
 
-    // Legacy Fields - Strip these to ensure clean JSON export
-    Audience,
-    Status,
-    LaunchYear,
-    Age,
-    Brand,
-    Type,
-    Link,
-    Family,
-    ModelID, // Old case
-    IncludedPen,
-    DevSize,
-    DevWeight,
-    PixelDensity,
-    DigitizerSize,
-    DigitizerDiag,
-    PressureLevels,
-    ReportRate,
-    PenTech,
-    Tilt,
-    MaxHover,
-    AccCenter,
-    AccCorner,
-    SupportsTouch,
-    AntiGlare,
-    Lamination,
+  // Sort fields alphabetically by output name (which matches internal name except system fields)
+  // We can just iterate our defined fields and construct the object
+  // But to ensure alphabetical key order in JSON, we should sort the keys we are about to insert.
 
-    // Strip internal metadata from rest
-    id,
-    CreateDate,
-    ModifiedDate,
+  // Create a map of what we want to export
+  TABLET_FIELDS.forEach(field => {
+    // Skip calculated fields
+    if (field.isCalculated) return;
 
-    ...rest
-  } = tablet;
+    // Get value
+    let value = tablet[field.fieldName];
 
-  // Create new object with underscores for metadata
-  const withUnderscores: any = {
-    _id: id,
-    _CreateDate: CreateDate,
-    _ModifiedDate: ModifiedDate,
-    ...rest
-  };
+    // Handle system fields (prefix with _)
+    let key = field.fieldName as string;
+    if (field.isSystem) {
+      key = `_${key}`;
+    }
 
-  // Sort keys alphabetically
-  const sorted: Partial<Tablet> = {};
-  Object.keys(withUnderscores).sort().forEach(key => {
-    (sorted as any)[key] = withUnderscores[key];
+    // Only include if value is defined (or maybe we want to include nulls? 
+    // The previous implementation utilized destructing which includes everything. 
+    // Let's include if it exists in the tablet object.
+
+    if (value !== undefined) {
+      exportData[key] = value;
+    }
   });
 
-  return sorted;
+  // Now create a new object with sorted keys
+  const sortedExportData: any = {};
+  Object.keys(exportData).sort().forEach(key => {
+    sortedExportData[key] = exportData[key];
+  });
+
+  return sortedExportData;
 };
 
 // Helper to calculate PPI
@@ -194,56 +173,73 @@ const generateId = (): string => {
 };
 
 const mapLegacyFields = (t: any): Tablet => {
-  return {
-    ...t,
-    // Model
-    ModelId: t.ModelId || t.ModelID || '',
-    ModelName: t.ModelName ? t.ModelName.trim() : 'Unknown',
-    ModelFamily: t.ModelFamily || t.Family ? (t.ModelFamily || t.Family).trim() : undefined,
-    ModelAudience: t.ModelAudience || t.Audience,
-    ModelStatus: t.ModelStatus || t.Status,
-    ModelLaunchYear: t.ModelLaunchYear || t.LaunchYear,
-    ModelBrand: t.ModelBrand || t.Brand ? (t.ModelBrand || t.Brand).trim() : 'Unknown',
-    ModelType: t.ModelType || t.Type ? (t.ModelType || t.Type).trim() : 'Unknown',
-    ModelProductLink: t.ModelProductLink || t.Link,
-    ModelIncludedPen: t.ModelIncludedPen || t.IncludedPen,
+  const mapped: any = {};
 
-    // Physical
-    PhysicalDimensions: t.PhysicalDimensions || t.DevSize,
-    PhysicalWeight: t.PhysicalWeight || t.DevWeight,
+  // Iterate over all defined fields and try to find values in the input object 't'
+  TABLET_FIELDS.forEach(field => {
+    // 1. Try exact match
+    let val = t[field.fieldName];
 
-    // Digitizer
-    DigitizerDimensions: t.DigitizerDimensions || t.DigitizerSize,
-    // DigitizerDiagonal -> Calculated
-    DigitizerPressureLevels: t.DigitizerPressureLevels || t.PressureLevels,
-    DigitizerReportRate: t.DigitizerReportRate || t.ReportRate,
-    DigitizerResolution: t.DigitizerResolution,
-    DigitizerType: t.DigitizerType || t.PenTech,
-    DigitizerTilt: t.DigitizerTilt || t.Tilt,
-    DigitizerMaxHover: t.DigitizerMaxHover || t.MaxHover,
-    DigitizerAccuracyCenter: t.DigitizerAccuracyCenter || t.AccCenter,
-    DigitizerAccuracyCorner: t.DigitizerAccuracyCorner || t.AccCorner,
-    DigitizerSupportsTouch: t.DigitizerSupportsTouch || t.SupportsTouch || t.DisplayTouchCapability, // Fallback chain
+    // 2. Try legacy names if not found
+    if (val === undefined && field.legacyNames) {
+      for (const legacy of field.legacyNames) {
+        if (t[legacy] !== undefined) {
+          val = t[legacy];
+          break;
+        }
+      }
+    }
 
-    // Display
-    DisplayResolution: t.DisplayResolution,
-    DisplaySize: t.DisplaySize,
-    DisplayViewingAngleHorizontal: t.DisplayViewingAngleHorizontal,
-    DisplayViewingAngleVertical: t.DisplayViewingAngleVertical,
-    DisplayColorBitDepth: t.DisplayColorBitDepth,
-    DisplayContrast: t.DisplayContrast,
-    DisplayResponseTime: t.DisplayResponseTime,
-    DisplayColorGamuts: t.DisplayColorGamuts,
-    DisplayBrightness: t.DisplayBrightness,
-    DisplayRefreshRate: t.DisplayRefreshRate,
-    DisplayPanelTech: t.DisplayPanelTech,
-    DisplayAntiGlare: t.DisplayAntiGlare || t.AntiGlare,
-    DisplayLamination: t.DisplayLamination || t.Lamination,
+    // 3. Try system prefix version (e.g. _id) if not found and is system
+    if (val === undefined && field.isSystem) {
+      if (t[`_${field.fieldName}`] !== undefined) {
+        val = t[`_${field.fieldName}`];
+      }
+    }
 
-    id: t.id || t._id || generateId(),
-    CreateDate: t.CreateDate || t._CreateDate || new Date().toISOString(),
-    ModifiedDate: t.ModifiedDate || t._ModifiedDate || new Date().toISOString(),
-  } as Tablet;
+    // Assign if checking for this field
+    // Note: We assign even if undefined, to match the shape, or arguably we only assign if defined.
+    // The previous manual mapping handled this with `|| undefined` or defaults.
+    // Let's assign if found.
+    if (val !== undefined) {
+      // Trim strings if needed
+      if (typeof val === 'string') {
+        // Special cases from original code?
+        // ModelName, Family, Brand, Type were trimmed.
+        if (['ModelName', 'ModelFamily', 'ModelBrand', 'ModelType'].includes(field.fieldName)) {
+          mapped[field.fieldName] = val.trim();
+        } else {
+          mapped[field.fieldName] = val;
+        }
+      } else {
+        mapped[field.fieldName] = val;
+      }
+    }
+  });
+
+  // Ensure required fields / defaults
+  if (!mapped.id) mapped.id = generateId();
+  if (!mapped.CreateDate) mapped.CreateDate = new Date().toISOString();
+  if (!mapped.ModifiedDate) mapped.ModifiedDate = new Date().toISOString();
+
+  // Fallback chain for SupportsTouch if not caught above
+  // The generic loop tried 'SupportsTouch' and 'DisplayTouchCapability'. 
+  // 'DigitizerSupportsTouch' is the main name.
+  // The original code had: t.DigitizerSupportsTouch || t.SupportsTouch || t.DisplayTouchCapability
+  // The tabletFields definition for DigitizerSupportsTouch should include these legacy names.
+  // Checking tabletFields.ts... yes: legacyNames: ['SupportsTouch', 'DisplayTouchCapability']
+  // So the loop handles it.
+
+  // Any other special defaults? 
+  // ModelName: 'Unknown'
+  if (!mapped.ModelName) mapped.ModelName = 'Unknown';
+  // ModelBrand: 'Unknown'
+  if (!mapped.ModelBrand) mapped.ModelBrand = 'Unknown';
+  // ModelType: 'Unknown'
+  if (!mapped.ModelType) mapped.ModelType = 'Unknown';
+
+
+  return mapped as Tablet;
 };
 
 
@@ -253,7 +249,7 @@ const enrichTablets = (data: Partial<Tablet>[]): Tablet[] => {
     const mapped = mapLegacyFields(t);
     return {
       ...mapped,
-      DisplayXPPI: mapped.DisplayXPPI || calculatePixelDensity(mapped),
+      DisplayPixelDensity: mapped.DisplayPixelDensity || calculatePixelDensity(mapped),
       DigitizerDiagonal: mapped.DigitizerDiagonal || calculateDigitizerDiag(mapped),
       ModelAge: calculateAge(mapped),
       AspectRatio: calculateAspectRatio(mapped),
@@ -265,7 +261,7 @@ const enrichSingleTablet = (t: Partial<Tablet>): Tablet => {
   const mapped = mapLegacyFields(t);
   return {
     ...mapped,
-    DisplayXPPI: mapped.DisplayXPPI || calculatePixelDensity(mapped),
+    DisplayPixelDensity: mapped.DisplayPixelDensity || calculatePixelDensity(mapped),
     DigitizerDiagonal: mapped.DigitizerDiagonal || calculateDigitizerDiag(mapped),
     ModelAge: calculateAge(mapped),
     AspectRatio: calculateAspectRatio(mapped),

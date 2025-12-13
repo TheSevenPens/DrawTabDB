@@ -181,7 +181,12 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, diagUni
               <span>{tablet.ModelId}</span>
               <span className="w-0.5 h-0.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
               <span>{isDisplay ? 'Display' : 'Tablet'}</span>
-            </div>
+              {tablet.DisplayPixelDensity && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-500">PPI</span>
+                  <span className="font-mono">{tablet.DisplayPixelDensity}</span>
+                </div>
+              )}</div>
           </div>
         </div>
 

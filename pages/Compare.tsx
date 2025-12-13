@@ -70,7 +70,7 @@ const Compare: React.FC = () => {
         { key: 'DigitizerSupportsTouch', label: 'Touch Support' },
         { key: 'DisplayResolution', label: 'Display Resolution' },
         { key: 'DisplaySize', label: 'Display Size', isNumeric: true },
-        { key: 'DisplayXPPI', label: 'PPI', isNumeric: true },
+        { key: "DisplayPixelDensity", label: 'PPI', isNumeric: true },
         { key: 'DisplayColorGamuts', label: 'Color Gamut' },
         { key: 'DisplayBrightness', label: 'Brightness', isNumeric: true },
         { key: 'DisplayContrast', label: 'Contrast', isNumeric: true },

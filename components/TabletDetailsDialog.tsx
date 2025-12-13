@@ -16,8 +16,7 @@ interface TabletDetailsDialogProps {
   hasNext?: boolean;
 }
 
-// Define fields that should not be editable manually
-const READ_ONLY_FIELDS = ['DisplayXPPI', 'DigitizerDiagonal', 'DigitizerArea', 'ModelAge', 'id', 'CreateDate', 'ModifiedDate'];
+import { TABLET_FIELDS } from '../tabletFields';
 
 // Predefined Options
 const BRAND_OPTIONS = ["WACOM", "HUION", "XPPEN", "XENCELABS", "UGEE", "SAMSUNG", "APPLE"];
@@ -67,11 +66,11 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const [showDisplayResolutionDropdown, setShowDisplayResolutionDropdown] = useState(false);
   const [showSupportsTouchDropdown, setShowSupportsTouchDropdown] = useState(false);
 
+  // Effect for handling dialog open/close state
   useEffect(() => {
     if (isOpen) {
-      setFormData(tablet);
       setIsEditing(initialIsEditing);
-      setActiveTab('CORE'); // Reset to Core tab on open
+      setActiveTab('CORE'); // Reset to Core tab only when dialog opens
     } else {
       // Reset state when closed
       setIsEditing(false);
@@ -85,7 +84,14 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       setShowDisplayResolutionDropdown(false);
       setShowSupportsTouchDropdown(false);
     }
-  }, [tablet, isOpen, initialIsEditing]);
+  }, [isOpen]); // Only run when isOpen changes
+
+  // Effect for updating form data when tablet changes (without resetting tab)
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(tablet);
+    }
+  }, [tablet]); // Only run when tablet data updates
 
   if (!isOpen) return null;
 
@@ -154,7 +160,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
       },
       {
         title: "Physical Dimensions",
-        fields: ["PhysicalDimensions", "PhysicalWeight"]
+        fields: ["PhysicalDimensions", "PhysicalWeight", "PhysicalWeightInclStand"]
       },
       {
         title: "Digitizer & Pen",
@@ -164,7 +170,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     DISPLAY: [
       {
         title: "Display Specs",
-        fields: ["DisplayResolution", "DisplayXPPI", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
+        fields: ["DisplayResolution", "DisplayPixelDensity", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
       }
     ],
     META: [
@@ -175,29 +181,18 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
     ]
   };
 
-  // Define units for specific fields
-  const fieldUnits: Record<string, string> = {
-    DigitizerDimensions: 'mm',
-    DigitizerDiagonal: 'mm',
-    DigitizerAccuracyCenter: 'mm',
-    DigitizerAccuracyCorner: 'mm',
-    PhysicalDimensions: 'mm',
-    PhysicalWeight: 'g',
-    DigitizerReportRate: 'RPS',
-    DigitizerPressureLevels: 'Lvl',
-    DigitizerTilt: '°',
-    DisplaySize: '"',
-    DisplayRefreshRate: 'Hz',
-    DisplayResponseTime: 'ms',
-    DisplayXPPI: 'PPI',
-    DigitizerResolution: 'LPmm',
-    DisplayBrightness: 'nits',
-    DisplayViewingAngleHorizontal: 'deg',
-    DisplayViewingAngleVertical: 'deg',
-    ModelAge: 'yrs',
-    DigitizerMaxHover: 'mm',
-    DigitizerArea: 'cm²'
-  };
+  // Derive units and read-only status from metadata
+  const fieldUnits: Record<string, string> = {};
+  const readOnlyFields: string[] = [];
+
+  TABLET_FIELDS.forEach(field => {
+    if (field.unit) {
+      fieldUnits[field.fieldName] = field.unit;
+    }
+    if (field.isCalculated || field.isSystem) {
+      readOnlyFields.push(field.fieldName);
+    }
+  });
 
   const getInputStyles = (fieldName: string, hasRightElement: boolean, isReadOnly: boolean) => {
     const originalValue = (tablet as any)[fieldName] || '';
@@ -231,7 +226,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
               {tablet.ModelName || "New Tablet"}
               {isEditing && <span className="text-xs bg-primary-600 px-2 py-0.5 rounded text-white font-medium">EDITING</span>}
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mt-0.5">{tablet.ModelID || "ID Not Set"}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-mono mt-0.5">{tablet.ModelId || "ID Not Set"}</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -341,7 +336,7 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
                   {group.fields.map(field => {
                     const unit = fieldUnits[field];
                     const isLink = field === 'ModelProductLink';
-                    const isReadOnly = READ_ONLY_FIELDS.includes(field);
+                    const isReadOnly = readOnlyFields.includes(field);
 
                     // Field Type flags
                     const isDigitizerDiagonal = field === 'DigitizerDiagonal';

@@ -35,7 +35,7 @@ const FILTERABLE_FIELDS: Array<{
     { key: 'DigitizerPressureLevels', label: 'Pressure Levels', type: 'numeric' },
     { key: 'DigitizerReportRate', label: 'Report Rate', type: 'numeric' },
     { key: 'PhysicalWeight', label: 'Weight', type: 'numeric' },
-    { key: 'DisplayXPPI', label: 'Pixel Density', type: 'numeric' },
+    { key: 'DisplayPixelDensity', label: 'Pixel Density', type: 'numeric' },
     { key: 'AspectRatio', label: 'Aspect Ratio', type: 'numeric' },
     { key: 'DigitizerSupportsTouch', label: 'Touch Support', type: 'text' },
   ];
@@ -63,8 +63,7 @@ const AVAILABLE_COLUMNS = [
   { id: 'DigitizerDimensions', label: 'Active Area' },
   { id: 'AspectRatio', label: 'Aspect Ratio' },
   { id: 'DigitizerPressureLevels', label: 'Pressure Levels' },
-  { id: 'DisplayResolution', label: 'Display Res' },
-  { id: 'DisplayXPPI', label: 'Pixel Density' },
+  { id: "DisplayPixelDensity", label: "PPI" },
   { id: 'DigitizerResolution', label: 'Digitizer Res' },
   { id: 'PhysicalWeight', label: 'Weight' },
   { id: 'DigitizerSupportsTouch', label: 'Touch Support' }
