@@ -16,7 +16,7 @@ const ALL_FIELD_OPTIONS = TABLET_FIELDS
   .filter(f => !f.isSystem)
   .map(f => ({
     value: f.fieldName,
-    label: f.DisplayName,
+    label: f.DisplayNameShort,
     category: f.Category || 'Other'
   }))
   .sort((a, b) => a.label.localeCompare(b.label));

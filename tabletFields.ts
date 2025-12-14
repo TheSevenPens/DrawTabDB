@@ -32,9 +32,9 @@ export const TABLET_FIELDS: FieldMetadata[] = [
     { fieldName: 'ModelAge', DisplayName: 'Model Age', DisplayNameShort: 'Age', legacyNames: ['Age'], Category: 'General', isCalculated: true, unit: 'yrs' },
 
     // --- Physical ---
-    { fieldName: 'PhysicalDimensions', DisplayName: 'Physical Dimensions', DisplayNameShort: 'Device Dimensions', legacyNames: ['DevSize'], Category: 'Physical', unit: 'mm' },
-    { fieldName: 'PhysicalWeight', DisplayName: 'Physical Weight', DisplayNameShort: 'Device Weight', legacyNames: ['DevWeight'], Category: 'Physical', unit: 'g' },
-    { fieldName: 'PhysicalWeightInclStand', DisplayName: 'Physical Weight includes stand', DisplayNameShort: 'Weight includes stand', legacyNames: ['DevWeightInclStand'], Category: 'Physical', unit: 'g' },
+    { fieldName: 'PhysicalDimensions', DisplayName: 'Physical Dimensions', DisplayNameShort: 'Dimensions', legacyNames: ['DevSize'], Category: 'Physical', unit: 'mm' },
+    { fieldName: 'PhysicalWeight', DisplayName: 'Physical Weight', DisplayNameShort: 'Weight', legacyNames: ['DevWeight'], Category: 'Physical', unit: 'g' },
+    { fieldName: 'PhysicalWeightInclStand', DisplayName: 'Weight includes stand', DisplayNameShort: 'Weight includes stand', legacyNames: ['DevWeightInclStand'], Category: 'Physical', unit: 'g' },
 
     // --- Digitizer ---
     { fieldName: 'DigitizerDimensions', DisplayName: 'Digitizer Dimensions', DisplayNameShort: 'Dimensions', legacyNames: ['DigitizerSize'], Category: 'Digitizer', unit: 'mm' },
