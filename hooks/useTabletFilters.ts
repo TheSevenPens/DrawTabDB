@@ -1,26 +1,17 @@
 import { useMemo } from 'react';
 import { Tablet, Filter, TextCondition, NumericCondition, FilterFieldType } from '../types';
-
-const NUMERIC_FIELDS = new Set<keyof Tablet>([
-    'ModelLaunchYear',
-    'ModelAge',
-    'DigitizerDiagonal',
-    'DigitizerPressureLevels',
-    'DigitizerReportRate',
-    'PhysicalWeight',
-    'DisplayPixelDensity',
-    'DigitizerAspectRatio',
-    'DigitizerResolution',
-    'DisplayDimensions',
-    'DisplayRefreshRate',
-    'DisplayResponseTime',
-    'DisplayBrightness',
-    'DigitizerTilt',
-    'DigitizerMaxHover'
-]);
+import { TABLET_FIELDS } from '../tabletFields';
 
 const getFieldType = (field: keyof Tablet): FilterFieldType => {
-    return NUMERIC_FIELDS.has(field) ? 'numeric' : 'text';
+    const meta = TABLET_FIELDS.find(f => f.fieldName === field);
+    if (!meta) return 'text';
+
+    // Treat explicit number types as numeric
+    if (meta.ValueKind === 'NumberInt' || meta.ValueKind === 'NumberFloat') {
+        return 'numeric';
+    }
+
+    return 'text';
 };
 
 const parseSearchQuery = (query: string): string[] => {

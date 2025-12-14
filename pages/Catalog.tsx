@@ -442,6 +442,20 @@ const Catalog: React.FC = () => {
                               ))}
                             </select>
 
+                            {/* Metadata Display */}
+                            {editingPillField && (() => {
+                              const meta = TABLET_FIELDS.find(f => f.fieldName === editingPillField);
+                              if (!meta) return null;
+                              return (
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400 px-1 -mt-1 flex items-center gap-2">
+                                  <span>Type: <span className="font-semibold text-slate-700 dark:text-slate-300">{meta.ValueKind}</span></span>
+                                  {meta.unit && (
+                                    <span>Unit: <span className="font-semibold text-slate-700 dark:text-slate-300">{meta.unit}</span></span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
                             {/* Condition Select */}
                             {editingPillField && (
                               <select
@@ -562,6 +576,20 @@ const Catalog: React.FC = () => {
                             <option key={field.value} value={field.value}>{field.label}</option>
                           ))}
                         </select>
+
+                        {/* Metadata Display */}
+                        {editingPillField && (() => {
+                          const meta = TABLET_FIELDS.find(f => f.fieldName === editingPillField);
+                          if (!meta) return null;
+                          return (
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 px-1 -mt-1 flex items-center gap-2">
+                              <span>Type: <span className="font-semibold text-slate-700 dark:text-slate-300">{meta.ValueKind}</span></span>
+                              {meta.unit && (
+                                <span>Unit: <span className="font-semibold text-slate-700 dark:text-slate-300">{meta.unit}</span></span>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Condition Select */}
                         {editingPillField && (

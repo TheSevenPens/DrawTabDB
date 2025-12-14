@@ -35,7 +35,7 @@ export const TABLET_FIELDS: FieldMetadata[] = [
 
     // --- Physical ---
     { fieldName: 'PhysicalDimensions', DisplayName: 'Physical Dimensions', DisplayNameShort: 'Dimensions', DisplayNameTiny: 'PhysDim', legacyNames: ['DevSize'], Category: 'Physical', ValueKind: 'Complex3DVolume', unit: 'mm' },
-    { fieldName: 'PhysicalWeight', DisplayName: 'Physical Weight', DisplayNameShort: 'Weight', DisplayNameTiny: 'PhysWeight', legacyNames: ['DevWeight'], Category: 'Physical', ValueKind: 'String', unit: 'g' },
+    { fieldName: 'PhysicalWeight', DisplayName: 'Physical Weight', DisplayNameShort: 'Weight', DisplayNameTiny: 'PhysWeight', legacyNames: ['DevWeight'], Category: 'Physical', ValueKind: 'NumberInt', unit: 'g' },
     { fieldName: 'PhysicalWeightInclStand', DisplayName: 'Physical Weight includes stand', DisplayNameShort: 'Weight includes stand', DisplayNameTiny: 'PhysWeightIncStand', legacyNames: ['DevWeightInclStand'], Category: 'Physical', ValueKind: 'String', unit: 'g' },
 
     // --- Digitizer ---
