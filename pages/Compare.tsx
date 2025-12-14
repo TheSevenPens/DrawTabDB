@@ -87,9 +87,12 @@ const Compare: React.FC = () => {
             key: f.key,
             label: meta?.DisplayName || f.key,
             unit: meta?.unit,
-            isNumeric: f.isNumeric
+            isNumeric: f.isNumeric,
+            category: meta?.Category || 'Other'
         };
     });
+
+    const CATEGORY_ORDER = ['General', 'Physical', 'Digitizer', 'Display', 'Other'];
 
     if (selectedTablets.length === 0) {
         return (
@@ -190,73 +193,88 @@ const Compare: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {fields.map((field) => {
-                            // Calculate if all values in this row are identical
-                            const rawValues = selectedTablets.map(t => (t as any)[field.key]);
-                            const strValues = rawValues.map(v => String(v || '').trim().toLowerCase());
-                            const isIdentical = strValues.every(val => val === strValues[0]);
-
-                            // Check if row has any data at all
-                            const hasData = strValues.some(val => val !== '' && val !== 'undefined' && val !== 'null');
-
-                            if (!hasData) return null;
-                            if (showDiffOnly && isIdentical) return null;
-
-                            // Numeric Calculations for Highlighting
-                            let maxVal = -Infinity;
-                            let minVal = Infinity;
-                            const numericValues: (number | null)[] = [];
-
-                            if (field.isNumeric) {
-                                rawValues.forEach(v => {
-                                    const n = parseNumeric(v);
-                                    numericValues.push(n);
-                                    if (n !== null && !isNaN(n)) {
-                                        if (n > maxVal) maxVal = n;
-                                        if (n < minVal) minVal = n;
-                                    }
-                                });
-                            }
-
-                            // Determine if we should show highlights for this row
-                            // Only highlight if there is a difference between max and min (avoid highlighting all if equal)
-                            const canHighlight = field.isNumeric && maxVal !== -Infinity && minVal !== Infinity && maxVal !== minVal;
+                        {CATEGORY_ORDER.map(category => {
+                            const categoryFields = fields.filter(f => f.category === category);
+                            if (categoryFields.length === 0) return null;
 
                             return (
-                                <tr key={field.key} className={`group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${!isIdentical ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''}`}>
-                                    <td className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/20 sticky left-0 z-10 backdrop-blur-sm">
-                                        {field.label}
-                                        {field.unit && <span className="text-[10px] text-slate-400 dark:text-slate-600 ml-1">({field.unit})</span>}
-                                    </td>
-                                    {selectedTablets.map((tablet, index) => {
-                                        const val = (tablet as any)[field.key] || '-';
-                                        const numVal = numericValues[index];
+                                <React.Fragment key={category}>
+                                    <tr className="bg-slate-50/80 dark:bg-slate-800/50 sticky top-[60px] z-10">
+                                        <td colSpan={selectedTablets.length + 1} className="px-4 py-3 text-xl font-bold text-slate-800 dark:text-slate-200 border-y border-slate-200 dark:border-slate-700/50 backdrop-blur-sm shadow-sm">
+                                            {category}
+                                        </td>
+                                    </tr>
+                                    {categoryFields.map((field) => {
+                                        // Calculate if all values in this row are identical
+                                        const rawValues = selectedTablets.map(t => (t as any)[field.key]);
+                                        const strValues = rawValues.map(v => String(v || '').trim().toLowerCase());
+                                        const isIdentical = strValues.every(val => val === strValues[0]);
 
-                                        const isMax = canHighlight && highlightMax && numVal === maxVal;
-                                        const isMin = canHighlight && highlightMin && numVal === minVal;
+                                        // Check if row has any data at all
+                                        const hasData = strValues.some(val => val !== '' && val !== 'undefined' && val !== 'null');
+
+                                        if (!hasData) return null;
+                                        if (showDiffOnly && isIdentical) return null;
+
+                                        // Numeric Calculations for Highlighting
+                                        let maxVal = -Infinity;
+                                        let minVal = Infinity;
+                                        const numericValues: (number | null)[] = [];
+
+                                        if (field.isNumeric) {
+                                            rawValues.forEach(v => {
+                                                const n = parseNumeric(v);
+                                                numericValues.push(n);
+                                                if (n !== null && !isNaN(n)) {
+                                                    if (n > maxVal) maxVal = n;
+                                                    if (n < minVal) minVal = n;
+                                                }
+                                            });
+                                        }
+
+                                        // Determine if we should show highlights for this row
+                                        // Only highlight if there is a difference between max and min (avoid highlighting all if equal)
+                                        const canHighlight = field.isNumeric && maxVal !== -Infinity && minVal !== Infinity && maxVal !== minVal;
 
                                         return (
-                                            <td
-                                                key={`${tablet.id}-${field.key}`}
-                                                className={`px-4 py-2 text-sm border-r border-slate-100 dark:border-slate-800/50 last:border-r-0 relative ${isIdentical
-                                                    ? 'text-slate-400 dark:text-slate-500'
-                                                    : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {isMax && <TrendingUp size={14} className="text-emerald-500 dark:text-emerald-400 shrink-0" />}
-                                                    {isMin && <TrendingDown size={14} className="text-red-500 dark:text-red-400 shrink-0" />}
-                                                    <span className={`${isMax ? 'text-emerald-600 dark:text-emerald-300 font-bold' : ''} ${isMin ? 'text-red-600 dark:text-red-300 font-bold' : ''}`}>
-                                                        {val}
-                                                    </span>
-                                                </div>
-                                            </td>
+                                            <tr key={field.key} className={`group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${!isIdentical ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''}`}>
+                                                <td className="px-4 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/20 sticky left-0 z-10 backdrop-blur-sm">
+                                                    {field.label}
+                                                    {field.unit && <span className="text-[10px] text-slate-400 dark:text-slate-600 ml-1">({field.unit})</span>}
+                                                </td>
+                                                {selectedTablets.map((tablet, index) => {
+                                                    const val = (tablet as any)[field.key] || '-';
+                                                    const numVal = numericValues[index];
+
+                                                    const isMax = canHighlight && highlightMax && numVal === maxVal;
+                                                    const isMin = canHighlight && highlightMin && numVal === minVal;
+
+                                                    return (
+                                                        <td
+                                                            key={`${tablet.id}-${field.key}`}
+                                                            className={`px-4 py-1 text-sm border-r border-slate-100 dark:border-slate-800/50 last:border-r-0 relative ${isIdentical
+                                                                ? 'text-slate-400 dark:text-slate-500'
+                                                                : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                {isMax && <TrendingUp size={14} className="text-emerald-500 dark:text-emerald-400 shrink-0" />}
+                                                                {isMin && <TrendingDown size={14} className="text-red-500 dark:text-red-400 shrink-0" />}
+                                                                <span className={`${isMax ? 'text-emerald-600 dark:text-emerald-300 font-bold' : ''} ${isMin ? 'text-red-600 dark:text-red-300 font-bold' : ''}`}>
+                                                                    {val}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
                                         );
                                     })}
-                                </tr>
+                                </React.Fragment>
                             );
                         })}
                     </tbody>
+
                 </table>
             </div>
 
