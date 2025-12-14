@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { GitCompare, X, Eye, EyeOff, Settings2, TrendingUp, TrendingDown, Pencil } from 'lucide-react';
 import { Tablet } from '../types';
+import { TABLET_FIELDS } from '../tabletFields';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 
 const parseNumeric = (val: any): number | null => {
@@ -50,35 +51,45 @@ const Compare: React.FC = () => {
     };
 
     // Define comparison fields
-    const fields: { key: keyof Tablet; label: string; unit?: string; isNumeric?: boolean }[] = [
-        { key: 'ModelBrand', label: 'Brand' },
-        { key: 'ModelFamily', label: 'Family' },
-        { key: 'ModelName', label: 'Model Name' },
-        { key: 'ModelLaunchYear', label: 'Released', isNumeric: true },
-        { key: 'ModelAge', label: 'Age', unit: 'years', isNumeric: true },
-        { key: 'ModelType', label: 'Type' },
-        { key: 'ModelProductLink', label: 'Link' },
-        { key: 'DigitizerDiagonal', label: 'Diagonal Size', unit: 'mm', isNumeric: true },
-        { key: 'DigitizerDimensions', label: 'Active Area', unit: 'mm' },
-        { key: 'DigitizerAspectRatio', label: 'Aspect Ratio' },
-        { key: 'DigitizerPressureLevels', label: 'Pressure Levels', isNumeric: true },
-        { key: 'DigitizerReportRate', label: 'Report Rate', isNumeric: true },
-        { key: 'DigitizerResolution', label: 'Digitizer Res', unit: 'LPmm', isNumeric: true },
-        { key: 'ModelIncludedPen', label: 'Pen Model' },
-        { key: 'DigitizerType', label: 'Pen Technology' },
-        { key: 'DigitizerTilt', label: 'Tilt Support', isNumeric: true },
-        { key: 'DigitizerSupportsTouch', label: 'Touch Support' },
-        { key: 'DisplayResolution', label: 'Display Resolution' },
-        { key: 'DisplayDimensions', label: 'Display Size', isNumeric: true },
-        { key: "DisplayPixelDensity", label: 'PPI', isNumeric: true },
-        { key: 'DisplayColorGamuts', label: 'Color Gamut' },
-        { key: 'DisplayBrightness', label: 'Brightness', isNumeric: true },
-        { key: 'DisplayContrast', label: 'Contrast', isNumeric: true },
-        { key: 'DisplayLamination', label: 'Laminated' },
-        { key: 'DisplayAntiGlare', label: 'Anti-Glare' },
-        { key: 'PhysicalDimensions', label: 'Dimensions', unit: 'mm' },
-        { key: 'PhysicalWeight', label: 'Weight', unit: 'g', isNumeric: true },
+    const fieldsSource: { key: keyof Tablet; isNumeric?: boolean }[] = [
+        { key: 'ModelBrand', isNumeric: false },
+        { key: 'ModelFamily', isNumeric: false },
+        { key: 'ModelName', isNumeric: false },
+        { key: 'ModelLaunchYear', isNumeric: true },
+        { key: 'ModelAge', isNumeric: true },
+        { key: 'ModelType', isNumeric: false },
+        { key: 'ModelProductLink', isNumeric: false },
+        { key: 'DigitizerDiagonal', isNumeric: true },
+        { key: 'DigitizerDimensions', isNumeric: false },
+        { key: 'DigitizerAspectRatio', isNumeric: false },
+        { key: 'DigitizerPressureLevels', isNumeric: true },
+        { key: 'DigitizerReportRate', isNumeric: true },
+        { key: 'DigitizerResolution', isNumeric: true },
+        { key: 'ModelIncludedPen', isNumeric: false },
+        { key: 'DigitizerType', isNumeric: false },
+        { key: 'DigitizerTilt', isNumeric: true },
+        { key: 'DigitizerSupportsTouch', isNumeric: false },
+        { key: 'DisplayResolution', isNumeric: false },
+        { key: 'DisplayDimensions', isNumeric: true },
+        { key: "DisplayPixelDensity", isNumeric: true },
+        { key: 'DisplayColorGamuts', isNumeric: false },
+        { key: 'DisplayBrightness', isNumeric: true },
+        { key: 'DisplayContrast', isNumeric: true },
+        { key: 'DisplayLamination', isNumeric: false },
+        { key: 'DisplayAntiGlare', isNumeric: false },
+        { key: 'PhysicalDimensions', isNumeric: false },
+        { key: 'PhysicalWeight', isNumeric: true },
     ];
+
+    const fields = fieldsSource.map(f => {
+        const meta = TABLET_FIELDS.find(tf => tf.fieldName === f.key);
+        return {
+            key: f.key,
+            label: meta?.DisplayName || f.key,
+            unit: meta?.unit,
+            isNumeric: f.isNumeric
+        };
+    });
 
     if (selectedTablets.length === 0) {
         return (
