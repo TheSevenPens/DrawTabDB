@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Database, AlertTriangle, Download, PanelLeftClose, PanelLeftOpen, History, GitCompare, Settings } from 'lucide-react';
 import { useData, prepareTabletForExport } from '../contexts/DataContext';
+import { useTabletWarnings } from '../hooks/useTabletWarnings';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -10,11 +11,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { tablets, flaggedIds } = useData();
+  const { stats: warningStats } = useTabletWarnings(tablets);
 
   const navItems = [
     { to: '/', icon: <Database size={20} />, label: 'Catalog' },
     { to: '/compare', icon: <GitCompare size={20} />, label: 'Compare', count: flaggedIds.length },
-    { to: '/warnings', icon: <AlertTriangle size={20} />, label: 'Warnings' },
+    { to: '/warnings', icon: <AlertTriangle size={20} />, label: 'Warnings', count: warningStats.total },
     { to: '/changes', icon: <History size={20} />, label: 'Changes' },
     { to: '/settings', icon: <Settings size={20} />, label: 'Settings' },
   ];
