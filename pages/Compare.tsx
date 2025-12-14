@@ -92,7 +92,7 @@ const Compare: React.FC = () => {
         };
     });
 
-    const CATEGORY_ORDER = ['General', 'Physical', 'Digitizer', 'Display', 'Other'];
+    const CATEGORY_ORDER = ['Model', 'Physical', 'Digitizer', 'Display', 'Other'];
 
     if (selectedTablets.length === 0) {
         return (

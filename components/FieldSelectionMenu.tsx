@@ -22,7 +22,7 @@ const FieldSelectionMenu: React.FC<FieldMenuProps> = ({
     const availableOptions = options.filter(o => !excludeValues.includes(o.value));
 
     // Group by category
-    const CATEGORY_ORDER = ['General', 'Physical', 'Digitizer', 'Display', 'System', 'Other'];
+    const CATEGORY_ORDER = ['Model', 'Physical', 'Digitizer', 'Display', 'System', 'Other'];
     const grouped = availableOptions.reduce((acc, opt) => {
         const cat = opt.category || 'Other';
         if (!acc[cat]) acc[cat] = [];

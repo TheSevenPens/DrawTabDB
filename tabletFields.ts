@@ -19,17 +19,17 @@ export const TABLET_FIELDS: FieldMetadata[] = [
     { fieldName: 'ModifiedDate', DisplayName: 'Modified Date', DisplayNameShort: 'Modified Date', legacyNames: ['_ModifiedDate'], Category: 'System', isSystem: true },
 
     // --- Core Model Info ---
-    { fieldName: 'ModelId', DisplayName: 'Model ID', DisplayNameShort: 'ID', legacyNames: ['ModelID'], Category: 'General' },
-    { fieldName: 'ModelName', DisplayName: 'Model Name', DisplayNameShort: 'Name', legacyNames: [], Category: 'General' },
-    { fieldName: 'ModelFamily', DisplayName: 'Model Family', DisplayNameShort: 'Family', legacyNames: ['Family'], Category: 'General' },
-    { fieldName: 'ModelBrand', DisplayName: 'Model Brand', DisplayNameShort: 'Brand', legacyNames: ['Brand'], Category: 'General' },
-    { fieldName: 'ModelType', DisplayName: 'Model Type', DisplayNameShort: 'Type', legacyNames: ['Type'], Category: 'General' },
-    { fieldName: 'ModelStatus', DisplayName: 'Model Status', DisplayNameShort: 'Status', legacyNames: ['Status'], Category: 'General' },
-    { fieldName: 'ModelAudience', DisplayName: 'Model Audience', DisplayNameShort: 'Audience', legacyNames: ['Audience'], Category: 'General' },
-    { fieldName: 'ModelLaunchYear', DisplayName: 'Model Launch Year', DisplayNameShort: 'Launch Year', legacyNames: ['LaunchYear'], Category: 'General' },
-    { fieldName: 'ModelProductLink', DisplayName: 'Model Product Link', DisplayNameShort: 'Product Link', legacyNames: ['Link'], Category: 'General' },
-    { fieldName: 'ModelIncludedPen', DisplayName: 'Model Included Pen', DisplayNameShort: 'Included Pen', legacyNames: ['IncludedPen'], Category: 'General' },
-    { fieldName: 'ModelAge', DisplayName: 'Model Age', DisplayNameShort: 'Age', legacyNames: ['Age'], Category: 'General', isCalculated: true, unit: 'yrs' },
+    { fieldName: 'ModelId', DisplayName: 'Model ID', DisplayNameShort: 'ID', legacyNames: ['ModelID'], Category: 'Model' },
+    { fieldName: 'ModelName', DisplayName: 'Model Name', DisplayNameShort: 'Name', legacyNames: [], Category: 'Model' },
+    { fieldName: 'ModelFamily', DisplayName: 'Model Family', DisplayNameShort: 'Family', legacyNames: ['Family'], Category: 'Model' },
+    { fieldName: 'ModelBrand', DisplayName: 'Model Brand', DisplayNameShort: 'Brand', legacyNames: ['Brand'], Category: 'Model' },
+    { fieldName: 'ModelType', DisplayName: 'Model Type', DisplayNameShort: 'Type', legacyNames: ['Type'], Category: 'Model' },
+    { fieldName: 'ModelStatus', DisplayName: 'Model Status', DisplayNameShort: 'Status', legacyNames: ['Status'], Category: 'Model' },
+    { fieldName: 'ModelAudience', DisplayName: 'Model Audience', DisplayNameShort: 'Audience', legacyNames: ['Audience'], Category: 'Model' },
+    { fieldName: 'ModelLaunchYear', DisplayName: 'Model Launch Year', DisplayNameShort: 'Launch Year', legacyNames: ['LaunchYear'], Category: 'Model' },
+    { fieldName: 'ModelProductLink', DisplayName: 'Model Product Link', DisplayNameShort: 'Product Link', legacyNames: ['Link'], Category: 'Model' },
+    { fieldName: 'ModelIncludedPen', DisplayName: 'Model Included Pen', DisplayNameShort: 'Included Pen', legacyNames: ['IncludedPen'], Category: 'Model' },
+    { fieldName: 'ModelAge', DisplayName: 'Model Age', DisplayNameShort: 'Age', legacyNames: ['Age'], Category: 'Model', isCalculated: true, unit: 'yrs' },
 
     // --- Physical ---
     { fieldName: 'PhysicalDimensions', DisplayName: 'Physical Dimensions', DisplayNameShort: 'Dimensions', legacyNames: ['DevSize'], Category: 'Physical', unit: 'mm' },

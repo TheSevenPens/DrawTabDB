@@ -161,27 +161,27 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const tabConfig = {
     CORE: [
       {
-        title: "General Information",
+        title: "Model",
         fields: ["ModelBrand", "ModelFamily", "ModelName", "ModelId", "ModelLaunchYear", "ModelAge", "ModelStatus", "ModelType", "ModelProductLink", "ModelIncludedPen", "ModelAudience"]
       },
       {
-        title: "Physical Dimensions",
+        title: "Physical",
         fields: ["PhysicalDimensions", "PhysicalWeight", "PhysicalWeightInclStand"]
       },
       {
-        title: "Digitizer & Pen",
+        title: "Digitizer",
         fields: ["DigitizerDimensions", "DigitizerDiagonal", "DigitizerArea", "DigitizerPressureLevels", "DigitizerReportRate", "DigitizerResolution", "DigitizerType", "DigitizerTilt", "DigitizerMaxHover", "DigitizerAccuracyCenter", "DigitizerAccuracyCorner", "DigitizerSupportsTouch"]
       }
     ],
     DISPLAY: [
       {
-        title: "Display Specs",
+        title: "Display",
         fields: ["DisplayResolution", "DisplayPixelDensity", "DisplayDimensions", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
       }
     ],
     META: [
       {
-        title: "System Info",
+        title: "System",
         fields: ["id", "CreateDate", "ModifiedDate"]
       }
     ]
