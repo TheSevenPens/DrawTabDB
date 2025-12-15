@@ -57,23 +57,25 @@ export const prepareTabletForExport = (tablet: Tablet | any, options: { includeC
   return sortedExportData;
 };
 
+import { parseDimensions, calculateDiagonal, calculateAspectRatio as calcAspectRatioUtil } from '../utils/dimensionUtils';
+import { mmToInches } from '../utils/unitUtils';
+
 // Helper to calculate PPI
 const calculatePixelDensity = (tablet: Partial<Tablet> | any): string | undefined => {
   if (!tablet.DisplayResolution) return undefined;
 
-  const resRegex = /(\d+)\s*[xX]\s*(\d+)/;
-  const resMatch = tablet.DisplayResolution.match(resRegex);
-  if (!resMatch) return undefined;
+  // Utilize parseDimensions for resolution parsing as well (Width x Height pattern)
+  const resDims = parseDimensions(tablet.DisplayResolution);
+  if (!resDims) return undefined;
 
-  const w = parseInt(resMatch[1]);
-  const h = parseInt(resMatch[2]);
-  const diagPx = Math.sqrt(w * w + h * h);
+  const diagPx = calculateDiagonal(resDims);
+  if (!diagPx) return undefined;
 
   let diagInches = 0;
 
   const diagSizeRegex = /^(\d+(?:\.\d+)?)\s*(?:"|'|inch|inches)?$/i;
   // Use new name with fallback
-  const displaySize = tablet.DisplaySize;
+  const displaySize = tablet.DisplayDimensions || tablet.DisplaySize;
   if (displaySize) {
     const match = displaySize.match(diagSizeRegex);
     if (match) {
@@ -84,13 +86,10 @@ const calculatePixelDensity = (tablet: Partial<Tablet> | any): string | undefine
   // Use new name with fallback
   const digitizerDim = tablet.DigitizerDimensions || tablet.DigitizerSize;
   if (!diagInches && digitizerDim) {
-    const dimRegex = /(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/;
-    const dimMatch = digitizerDim.match(dimRegex);
-    if (dimMatch) {
-      const dw = parseFloat(dimMatch[1]);
-      const dh = parseFloat(dimMatch[2]);
-      const diagMm = Math.sqrt(dw * dw + dh * dh);
-      diagInches = diagMm / 25.4;
+    const dims = parseDimensions(digitizerDim);
+    if (dims) {
+      const diagMm = calculateDiagonal(dims);
+      if (diagMm) diagInches = mmToInches(diagMm);
     }
   }
 
@@ -104,16 +103,11 @@ const calculatePixelDensity = (tablet: Partial<Tablet> | any): string | undefine
 // Helper to calculate Digitizer Diagonal in mm
 const calculateDigitizerDiag = (tablet: Partial<Tablet> | any): string | undefined => {
   const digitizerDim = tablet.DigitizerDimensions || tablet.DigitizerSize;
-  if (!digitizerDim) return undefined;
+  const dims = parseDimensions(digitizerDim);
 
-  const dimRegex = /(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/;
-  const match = digitizerDim.match(dimRegex);
-
-  if (match) {
-    const w = parseFloat(match[1]);
-    const h = parseFloat(match[2]);
-    const diag = Math.sqrt(w * w + h * h);
-    return diag.toFixed(2);
+  if (dims) {
+    const diag = calculateDiagonal(dims);
+    return diag?.toFixed(2);
   }
 
   return undefined;
@@ -122,27 +116,8 @@ const calculateDigitizerDiag = (tablet: Partial<Tablet> | any): string | undefin
 // Helper to calculate Aspect Ratio
 const calculateAspectRatio = (tablet: Partial<Tablet> | any): string | undefined => {
   const digitizerDim = tablet.DigitizerDimensions || tablet.DigitizerSize;
-  if (!digitizerDim) return undefined;
-  const match = digitizerDim.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
-
-  if (match) {
-    const w = parseFloat(match[1]);
-    const h = parseFloat(match[2]);
-    if (h === 0) return undefined;
-
-    const ratio = w / h;
-    const tol = 0.05;
-
-    if (Math.abs(ratio - (16 / 9)) < tol) return '16:9';
-    if (Math.abs(ratio - (16 / 10)) < tol) return '16:10';
-    if (Math.abs(ratio - (4 / 3)) < tol) return '4:3';
-    if (Math.abs(ratio - (3 / 2)) < tol) return '3:2';
-    if (Math.abs(ratio - 1) < tol) return '1:1';
-    if (Math.abs(ratio - (21 / 9)) < tol) return '21:9';
-
-    return `${ratio.toFixed(2)}:1`;
-  }
-  return undefined;
+  const dims = parseDimensions(digitizerDim);
+  return calcAspectRatioUtil(dims);
 };
 
 // Helper to calculate Age based on LaunchYear
@@ -251,7 +226,7 @@ const enrichTablets = (data: Partial<Tablet>[]): Tablet[] => {
       DisplayPixelDensity: mapped.DisplayPixelDensity || calculatePixelDensity(mapped),
       DigitizerDiagonal: mapped.DigitizerDiagonal || calculateDigitizerDiag(mapped),
       ModelAge: calculateAge(mapped),
-      AspectRatio: calculateAspectRatio(mapped),
+      DigitizerAspectRatio: calculateAspectRatio(mapped),
     };
   });
 };
@@ -263,7 +238,7 @@ const enrichSingleTablet = (t: Partial<Tablet>): Tablet => {
     DisplayPixelDensity: mapped.DisplayPixelDensity || calculatePixelDensity(mapped),
     DigitizerDiagonal: mapped.DigitizerDiagonal || calculateDigitizerDiag(mapped),
     ModelAge: calculateAge(mapped),
-    AspectRatio: calculateAspectRatio(mapped),
+    DigitizerAspectRatio: calculateAspectRatio(mapped),
   };
 };
 

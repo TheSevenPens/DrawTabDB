@@ -1,206 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { AlertTriangle, AlertCircle, CheckCircle, FileWarning, Pencil } from 'lucide-react';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 import { Tablet } from '../types';
-
-interface Warning {
-  id: string;
-  type: 'CRITICAL' | 'WARNING';
-  category: 'MISSING_FIELD' | 'DUPLICATE_ID' | 'WHITESPACE' | 'SCHEMA_MISMATCH' | 'INVALID_FORMAT';
-  message: string;
-  modelId?: string;
-  modelName?: string;
-  tabletIndex: number;
-}
+import { useTabletWarnings } from '../hooks/useTabletWarnings';
 
 const Warnings: React.FC = () => {
   const { tablets, updateTabletAtIndex } = useData();
   const [editingTabletIndex, setEditingTabletIndex] = useState<number | null>(null);
 
-  const warnings = useMemo(() => {
-    const results: Warning[] = [];
-    const idMap = new Map<string, number>();
-
-    tablets.forEach((t, index) => {
-      // Use index fallback if ID is completely missing
-      const modelId = t.ModelID || `[INDEX_${index}]`; 
-      const modelName = t.ModelName === 'Unknown' ? '[Unknown Name]' : t.ModelName;
-      // Use internal ID for warning uniqueness
-      const internalId = t.id;
-
-      // 1. Check for Missing Required Fields
-      if (!t.ModelID) {
-        results.push({
-          id: `missing-id-${internalId}`,
-          type: 'CRITICAL',
-          category: 'MISSING_FIELD',
-          message: `Record at index ${index} is missing a Model ID.`,
-          modelName: t.ModelName,
-          tabletIndex: index
-        });
-      }
-
-      if (!t.ModelName || t.ModelName === 'Unknown') {
-        results.push({
-          id: `missing-name-${internalId}`,
-          type: 'CRITICAL',
-          category: 'MISSING_FIELD',
-          message: `Missing Model Name.`,
-          modelId,
-          modelName: 'Unknown',
-          tabletIndex: index
-        });
-      }
-
-      if (!t.Brand || t.Brand === 'Unknown') {
-        results.push({
-          id: `missing-brand-${internalId}`,
-          type: 'CRITICAL',
-          category: 'MISSING_FIELD',
-          message: `Missing Brand.`,
-          modelId,
-          modelName,
-          tabletIndex: index
-        });
-      }
-
-      if (!t.Type || t.Type === 'Unknown') {
-        results.push({
-          id: `missing-type-${internalId}`,
-          type: 'CRITICAL',
-          category: 'MISSING_FIELD',
-          message: `Missing Type.`,
-          modelId,
-          modelName,
-          tabletIndex: index
-        });
-      }
-
-      // 2. Track Duplicates (using ModelID because that must be unique for user perspective)
-      if (t.ModelID) {
-        idMap.set(t.ModelID, (idMap.get(t.ModelID) || 0) + 1);
-      }
-
-      // 3. Check for Whitespace in all string fields
-      Object.entries(t).forEach(([key, value]) => {
-        if (typeof value === 'string') {
-          if (value !== value.trim()) {
-            results.push({
-              id: `whitespace-${internalId}-${key}`,
-              type: 'WARNING',
-              category: 'WHITESPACE',
-              message: `Field '${key}' has leading/trailing whitespace. Value: "${value}"`,
-              modelId,
-              modelName,
-              tabletIndex: index
-            });
-          }
-        }
-      });
-
-      // 4. Check for Display Specs on Pen Tablets
-      if (t.Type === 'PENTABLET') {
-        const displayFields: (keyof Tablet)[] = [
-          'DisplayResolution',
-          'DisplaySize',
-          'DisplayViewingAngleHorizontal',
-          'DisplayViewingAngleVertical',
-          'DisplayColorBitDepth',
-          'DisplayContrast',
-          'DisplayResponseTime',
-          'DisplayColorGamuts',
-          'DisplayBrightness',
-          'DisplayRefreshRate',
-          'DisplayPanelTech'
-        ];
-
-        displayFields.forEach(field => {
-            const val = t[field];
-            // Check if value exists and is not just whitespace or common placeholders
-            if (val && typeof val === 'string') {
-                const normalized = val.trim().toLowerCase();
-                if (normalized !== '' && normalized !== 'n/a' && normalized !== '-' && normalized !== 'none') {
-                    results.push({
-                        id: `schema-${internalId}-${field}`,
-                        type: 'WARNING',
-                        category: 'SCHEMA_MISMATCH',
-                        message: `Pen Tablet contains display spec '${field}': "${val}"`,
-                        modelId,
-                        modelName,
-                        tabletIndex: index
-                    });
-                }
-            }
-        });
-      }
-
-      // 5. Check for Non-Numeric values in numeric fields
-      const numericFields: (keyof Tablet)[] = [
-          'LaunchYear', 'PressureLevels', 'ReportRate', 'DigitizerResolution', 
-          'Tilt', 'DisplayRefreshRate', 'DisplayBrightness', 'DisplayResponseTime', 
-          'DevWeight', 'MaxHover', 'PixelDensity', 'DisplaySize', 'DisplayContrast'
-      ];
-      
-      const hasNumber = (str: string) => /\d/.test(str);
-
-      numericFields.forEach(field => {
-          const val = t[field];
-          if (val && typeof val === 'string' && val.trim() !== '') {
-              const normalized = val.trim().toLowerCase();
-              // Ignore common non-numeric placeholders
-              if (['n/a', 'unknown', '-', 'tbd', 'none'].includes(normalized)) return;
-
-              // If it doesn't contain any digit, it's definitely not a number (e.g. "Yes")
-              if (!hasNumber(val)) {
-                   results.push({
-                      id: `numeric-${internalId}-${field}`,
-                      type: 'WARNING',
-                      category: 'INVALID_FORMAT',
-                      message: `Field '${field}' should be numeric but contains: "${val}"`,
-                      modelId,
-                      modelName,
-                      tabletIndex: index
-                   });
-              }
-          }
-      });
-    });
-
-    // Add duplicates to results (we need to find the indices again for duplicates)
-    idMap.forEach((count, id) => {
-      if (count > 1) {
-        // Find all indices with this ModelID
-        tablets.forEach((t, index) => {
-            if (t.ModelID === id) {
-                results.push({
-                    id: `dup-${t.id}-${index}`, // Unique warning ID using internal ID
-                    type: 'CRITICAL',
-                    category: 'DUPLICATE_ID',
-                    message: `Duplicate Model ID detected: "${id}".`,
-                    modelId: id,
-                    modelName: t.ModelName,
-                    tabletIndex: index
-                });
-            }
-        });
-      }
-    });
-
-    // Sort: Critical first, then by Model ID
-    return results.sort((a, b) => {
-      if (a.type !== b.type) {
-        return a.type === 'CRITICAL' ? -1 : 1;
-      }
-      return (a.modelId || '').localeCompare(b.modelId || '');
-    });
-  }, [tablets]);
-
-  const stats = {
-    total: warnings.length,
-    critical: warnings.filter(w => w.type === 'CRITICAL').length,
-    warning: warnings.filter(w => w.type === 'WARNING').length
-  };
+  const { warnings, stats } = useTabletWarnings(tablets);
 
   const handleEdit = (index: number) => {
     setEditingTabletIndex(index);
@@ -208,8 +17,8 @@ const Warnings: React.FC = () => {
 
   const handleSave = (updatedTablet: Tablet) => {
     if (editingTabletIndex !== null) {
-        updateTabletAtIndex(editingTabletIndex, updatedTablet);
-        setEditingTabletIndex(null);
+      updateTabletAtIndex(editingTabletIndex, updatedTablet);
+      setEditingTabletIndex(null);
     }
   };
 
@@ -230,9 +39,9 @@ const Warnings: React.FC = () => {
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
           Data Warnings
           {stats.total > 0 && (
-             <span className="text-sm px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200 border border-red-200 dark:border-red-700/50 font-mono">
-               {stats.total} Issues Found
-             </span>
+            <span className="text-sm px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200 border border-red-200 dark:border-red-700/50 font-mono">
+              {stats.total} Issues Found
+            </span>
           )}
         </h2>
         <p className="text-slate-500 dark:text-slate-400 mt-1">Audit report for data integrity issues in the loaded database.</p>
@@ -242,7 +51,7 @@ const Warnings: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
         <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex items-center gap-4 shadow-sm">
           <div className={`p-3 rounded-lg ${stats.total > 0 ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
-             {stats.total > 0 ? <AlertTriangle size={24} /> : <CheckCircle size={24} />}
+            {stats.total > 0 ? <AlertTriangle size={24} /> : <CheckCircle size={24} />}
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Total Issues</p>
@@ -252,7 +61,7 @@ const Warnings: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex items-center gap-4 shadow-sm">
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
-             <AlertCircle size={24} />
+            <AlertCircle size={24} />
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Critical Errors</p>
@@ -262,7 +71,7 @@ const Warnings: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex items-center gap-4 shadow-sm">
           <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
-             <FileWarning size={24} />
+            <FileWarning size={24} />
           </div>
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Warnings</p>
@@ -317,13 +126,13 @@ const Warnings: React.FC = () => {
                     <td className="p-4 text-sm text-slate-900 dark:text-white font-medium">{w.modelName || '-'}</td>
                     <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{w.message}</td>
                     <td className="p-4 text-center">
-                        <button 
-                            onClick={() => handleEdit(w.tabletIndex)}
-                            className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-primary-600 dark:hover:bg-primary-600 text-slate-600 dark:text-slate-300 hover:text-white dark:hover:text-white rounded-lg transition-colors"
-                            title="Edit Record"
-                        >
-                            <Pencil size={16} />
-                        </button>
+                      <button
+                        onClick={() => handleEdit(w.tabletIndex)}
+                        className="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-primary-600 dark:hover:bg-primary-600 text-slate-600 dark:text-slate-300 hover:text-white dark:hover:text-white rounded-lg transition-colors"
+                        title="Edit Record"
+                      >
+                        <Pencil size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -335,16 +144,16 @@ const Warnings: React.FC = () => {
 
       {/* Details Dialog */}
       {editingTabletIndex !== null && tablets[editingTabletIndex] && (
-        <TabletDetailsDialog 
-            isOpen={true}
-            onClose={() => setEditingTabletIndex(null)}
-            tablet={tablets[editingTabletIndex]}
-            onSave={handleSave}
-            initialIsEditing={true}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            hasPrev={hasPrev}
-            hasNext={hasNext}
+        <TabletDetailsDialog
+          isOpen={true}
+          onClose={() => setEditingTabletIndex(null)}
+          tablet={tablets[editingTabletIndex]}
+          onSave={handleSave}
+          initialIsEditing={true}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          hasPrev={hasPrev}
+          hasNext={hasNext}
         />
       )}
     </div>

@@ -3,6 +3,8 @@ import { Tablet } from '../types';
 import { TABLET_FIELDS } from '../tabletFields';
 import { ExternalLink, MoreHorizontal, Copy, Square, CheckSquare } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { parseDimensions, calculateAspectRatio } from '../utils/dimensionUtils';
+import { mmToInches, lpmToLpi } from '../utils/unitUtils';
 
 interface ColumnSettings {
   customLabel?: string;
@@ -47,6 +49,8 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
   const getColumnContent = (colId: string) => {
     const settings = columnSettings[colId] || {};
 
+
+
     // Helper to get centralized display name
     const getFieldDisplayName = (key: string) => TABLET_FIELDS.find(f => f.fieldName === key)?.DisplayName || key;
 
@@ -72,7 +76,7 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
 
         const effectiveDiagUnit = unit || 'in';
         const displayVal = effectiveDiagUnit === 'in'
-          ? `${(diagVal / 25.4).toFixed(1)}″`
+          ? `${mmToInches(diagVal).toFixed(1)}″`
           : `${Math.round(diagVal)}mm`;
         return { label: getLabel('DigitizerDiagonal', `(${effectiveDiagUnit})`), value: displayVal };
 
@@ -86,14 +90,10 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
         const effectiveAreaUnit = unit || 'mm';
 
         if (effectiveAreaUnit === 'in') {
-          // Attempt to parse dimensions from standard format (e.g., 293 x 165 or 293.7 x 165.2)
-          const dimRegex = /(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/;
-          const match = raw.match(dimRegex);
-          if (match) {
-            const w = parseFloat(match[1]);
-            const h = parseFloat(match[2]);
-            const wIn = (w / 25.4).toFixed(1);
-            const hIn = (h / 25.4).toFixed(1);
+          const dims = parseDimensions(raw);
+          if (dims) {
+            const wIn = mmToInches(dims.width).toFixed(1);
+            const hIn = mmToInches(dims.height).toFixed(1);
             return { label: getLabel('DigitizerDimensions', '(in)'), value: `${wIn}″ x ${hIn}″` };
           }
         }
@@ -101,27 +101,11 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
 
       case 'AspectRatio':
         if (!tablet.DigitizerDimensions) return { label: getLabel('AspectRatio'), value: '-' };
-        // Matches "293 x 165" or "293.7 x 165.2", allowing spaces
-        const dimMatch = tablet.DigitizerDimensions.match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
 
-        if (dimMatch) {
-          const w = parseFloat(dimMatch[1]);
-          const h = parseFloat(dimMatch[2]);
-          if (h === 0) return { label: getLabel('AspectRatio'), value: '-' };
-
-          const ratio = w / h;
-          // Tolerance for standard ratios
-          const tol = 0.05;
-          let arDisplay = `${ratio.toFixed(2)}:1`;
-
-          if (Math.abs(ratio - (16 / 9)) < tol) arDisplay = '16:9';
-          else if (Math.abs(ratio - (16 / 10)) < tol) arDisplay = '16:10';
-          else if (Math.abs(ratio - (4 / 3)) < tol) arDisplay = '4:3';
-          else if (Math.abs(ratio - (3 / 2)) < tol) arDisplay = '3:2';
-          else if (Math.abs(ratio - 1) < tol) arDisplay = '1:1';
-          else if (Math.abs(ratio - (21 / 9)) < tol) arDisplay = '21:9';
-
-          return { label: getLabel('AspectRatio'), value: arDisplay };
+        const arDims = parseDimensions(tablet.DigitizerDimensions);
+        if (arDims) {
+          const arDisplay = calculateAspectRatio(arDims);
+          if (arDisplay) return { label: getLabel('AspectRatio'), value: arDisplay };
         }
         return { label: getLabel('AspectRatio'), value: '-' };
 
@@ -143,7 +127,7 @@ const TabletCard: React.FC<TabletCardProps> = ({ tablet, visibleColumns, columnS
         // Raw value is in LPmm.
         // To show LPI, we multiply by 25.4 (1 mm = 0.03937 inch)
         if (effectiveResUnit === 'lpi') {
-          const lpi = Math.round(resVal * 25.4);
+          const lpi = Math.round(lpmToLpi(resVal));
           return { label: getLabel('DigitizerResolution', '(LPI)'), value: `${lpi} LPI` };
         }
 

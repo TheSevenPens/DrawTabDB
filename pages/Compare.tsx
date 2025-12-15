@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { GitCompare, X, Eye, EyeOff, Settings2, TrendingUp, TrendingDown, Pencil } from 'lucide-react';
 import { Tablet } from '../types';
+import { TABLET_FIELDS } from '../tabletFields';
 import TabletDetailsDialog from '../components/TabletDetailsDialog';
 
 const parseNumeric = (val: any): number | null => {
@@ -50,35 +51,48 @@ const Compare: React.FC = () => {
     };
 
     // Define comparison fields
-    const fields: { key: keyof Tablet; label: string; unit?: string; isNumeric?: boolean }[] = [
-        { key: 'ModelBrand', label: 'Brand' },
-        { key: 'ModelFamily', label: 'Family' },
-        { key: 'ModelName', label: 'Model Name' },
-        { key: 'ModelLaunchYear', label: 'Released', isNumeric: true },
-        { key: 'ModelAge', label: 'Age', unit: 'years', isNumeric: true },
-        { key: 'ModelType', label: 'Type' },
-        { key: 'ModelProductLink', label: 'Link' },
-        { key: 'DigitizerDiagonal', label: 'Diagonal Size', unit: 'mm', isNumeric: true },
-        { key: 'DigitizerDimensions', label: 'Active Area', unit: 'mm' },
-        { key: 'AspectRatio', label: 'Aspect Ratio' },
-        { key: 'DigitizerPressureLevels', label: 'Pressure Levels', isNumeric: true },
-        { key: 'DigitizerReportRate', label: 'Report Rate', isNumeric: true },
-        { key: 'DigitizerResolution', label: 'Digitizer Res', unit: 'LPmm', isNumeric: true },
-        { key: 'ModelIncludedPen', label: 'Pen Model' },
-        { key: 'DigitizerType', label: 'Pen Technology' },
-        { key: 'DigitizerTilt', label: 'Tilt Support', isNumeric: true },
-        { key: 'DigitizerSupportsTouch', label: 'Touch Support' },
-        { key: 'DisplayResolution', label: 'Display Resolution' },
-        { key: 'DisplaySize', label: 'Display Size', isNumeric: true },
-        { key: "DisplayPixelDensity", label: 'PPI', isNumeric: true },
-        { key: 'DisplayColorGamuts', label: 'Color Gamut' },
-        { key: 'DisplayBrightness', label: 'Brightness', isNumeric: true },
-        { key: 'DisplayContrast', label: 'Contrast', isNumeric: true },
-        { key: 'DisplayLamination', label: 'Laminated' },
-        { key: 'DisplayAntiGlare', label: 'Anti-Glare' },
-        { key: 'PhysicalDimensions', label: 'Dimensions', unit: 'mm' },
-        { key: 'PhysicalWeight', label: 'Weight', unit: 'g', isNumeric: true },
+    const fieldsSource: { key: keyof Tablet; isNumeric?: boolean }[] = [
+        { key: 'ModelBrand', isNumeric: false },
+        { key: 'ModelFamily', isNumeric: false },
+        { key: 'ModelName', isNumeric: false },
+        { key: 'ModelLaunchYear', isNumeric: true },
+        { key: 'ModelAge', isNumeric: true },
+        { key: 'ModelType', isNumeric: false },
+        { key: 'ModelProductLink', isNumeric: false },
+        { key: 'DigitizerDiagonal', isNumeric: true },
+        { key: 'DigitizerDimensions', isNumeric: false },
+        { key: 'DigitizerAspectRatio', isNumeric: false },
+        { key: 'DigitizerPressureLevels', isNumeric: true },
+        { key: 'DigitizerReportRate', isNumeric: true },
+        { key: 'DigitizerResolution', isNumeric: true },
+        { key: 'ModelIncludedPen', isNumeric: false },
+        { key: 'DigitizerType', isNumeric: false },
+        { key: 'DigitizerTilt', isNumeric: true },
+        { key: 'DigitizerSupportsTouch', isNumeric: false },
+        { key: 'DisplayResolution', isNumeric: false },
+        { key: 'DisplayDimensions', isNumeric: true },
+        { key: "DisplayPixelDensity", isNumeric: true },
+        { key: 'DisplayColorGamuts', isNumeric: false },
+        { key: 'DisplayBrightness', isNumeric: true },
+        { key: 'DisplayContrast', isNumeric: true },
+        { key: 'DisplayLamination', isNumeric: false },
+        { key: 'DisplayAntiGlare', isNumeric: false },
+        { key: 'PhysicalDimensions', isNumeric: false },
+        { key: 'PhysicalWeight', isNumeric: true },
     ];
+
+    const fields = fieldsSource.map(f => {
+        const meta = TABLET_FIELDS.find(tf => tf.fieldName === f.key);
+        return {
+            key: f.key,
+            label: meta?.DisplayName || f.key,
+            unit: meta?.unit,
+            isNumeric: f.isNumeric,
+            category: meta?.Category || 'Other'
+        };
+    });
+
+    const CATEGORY_ORDER = ['Model', 'Physical', 'Digitizer', 'Display', 'Other'];
 
     if (selectedTablets.length === 0) {
         return (
@@ -179,73 +193,88 @@ const Compare: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {fields.map((field) => {
-                            // Calculate if all values in this row are identical
-                            const rawValues = selectedTablets.map(t => (t as any)[field.key]);
-                            const strValues = rawValues.map(v => String(v || '').trim().toLowerCase());
-                            const isIdentical = strValues.every(val => val === strValues[0]);
-
-                            // Check if row has any data at all
-                            const hasData = strValues.some(val => val !== '' && val !== 'undefined' && val !== 'null');
-
-                            if (!hasData) return null;
-                            if (showDiffOnly && isIdentical) return null;
-
-                            // Numeric Calculations for Highlighting
-                            let maxVal = -Infinity;
-                            let minVal = Infinity;
-                            const numericValues: (number | null)[] = [];
-
-                            if (field.isNumeric) {
-                                rawValues.forEach(v => {
-                                    const n = parseNumeric(v);
-                                    numericValues.push(n);
-                                    if (n !== null && !isNaN(n)) {
-                                        if (n > maxVal) maxVal = n;
-                                        if (n < minVal) minVal = n;
-                                    }
-                                });
-                            }
-
-                            // Determine if we should show highlights for this row
-                            // Only highlight if there is a difference between max and min (avoid highlighting all if equal)
-                            const canHighlight = field.isNumeric && maxVal !== -Infinity && minVal !== Infinity && maxVal !== minVal;
+                        {CATEGORY_ORDER.map(category => {
+                            const categoryFields = fields.filter(f => f.category === category);
+                            if (categoryFields.length === 0) return null;
 
                             return (
-                                <tr key={field.key} className={`group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${!isIdentical ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''}`}>
-                                    <td className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/20 sticky left-0 z-10 backdrop-blur-sm">
-                                        {field.label}
-                                        {field.unit && <span className="text-[10px] text-slate-400 dark:text-slate-600 ml-1">({field.unit})</span>}
-                                    </td>
-                                    {selectedTablets.map((tablet, index) => {
-                                        const val = (tablet as any)[field.key] || '-';
-                                        const numVal = numericValues[index];
+                                <React.Fragment key={category}>
+                                    <tr className="bg-slate-50/80 dark:bg-slate-800/50 sticky top-[60px] z-10">
+                                        <td colSpan={selectedTablets.length + 1} className="px-4 py-3 text-xl font-bold text-slate-800 dark:text-slate-200 border-y border-slate-200 dark:border-slate-700/50 backdrop-blur-sm shadow-sm">
+                                            {category}
+                                        </td>
+                                    </tr>
+                                    {categoryFields.map((field) => {
+                                        // Calculate if all values in this row are identical
+                                        const rawValues = selectedTablets.map(t => (t as any)[field.key]);
+                                        const strValues = rawValues.map(v => String(v || '').trim().toLowerCase());
+                                        const isIdentical = strValues.every(val => val === strValues[0]);
 
-                                        const isMax = canHighlight && highlightMax && numVal === maxVal;
-                                        const isMin = canHighlight && highlightMin && numVal === minVal;
+                                        // Check if row has any data at all
+                                        const hasData = strValues.some(val => val !== '' && val !== 'undefined' && val !== 'null');
+
+                                        if (!hasData) return null;
+                                        if (showDiffOnly && isIdentical) return null;
+
+                                        // Numeric Calculations for Highlighting
+                                        let maxVal = -Infinity;
+                                        let minVal = Infinity;
+                                        const numericValues: (number | null)[] = [];
+
+                                        if (field.isNumeric) {
+                                            rawValues.forEach(v => {
+                                                const n = parseNumeric(v);
+                                                numericValues.push(n);
+                                                if (n !== null && !isNaN(n)) {
+                                                    if (n > maxVal) maxVal = n;
+                                                    if (n < minVal) minVal = n;
+                                                }
+                                            });
+                                        }
+
+                                        // Determine if we should show highlights for this row
+                                        // Only highlight if there is a difference between max and min (avoid highlighting all if equal)
+                                        const canHighlight = field.isNumeric && maxVal !== -Infinity && minVal !== Infinity && maxVal !== minVal;
 
                                         return (
-                                            <td
-                                                key={`${tablet.id}-${field.key}`}
-                                                className={`px-4 py-2 text-sm border-r border-slate-100 dark:border-slate-800/50 last:border-r-0 relative ${isIdentical
-                                                    ? 'text-slate-400 dark:text-slate-500'
-                                                    : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {isMax && <TrendingUp size={14} className="text-emerald-500 dark:text-emerald-400 shrink-0" />}
-                                                    {isMin && <TrendingDown size={14} className="text-red-500 dark:text-red-400 shrink-0" />}
-                                                    <span className={`${isMax ? 'text-emerald-600 dark:text-emerald-300 font-bold' : ''} ${isMin ? 'text-red-600 dark:text-red-300 font-bold' : ''}`}>
-                                                        {val}
-                                                    </span>
-                                                </div>
-                                            </td>
+                                            <tr key={field.key} className={`group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${!isIdentical ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''}`}>
+                                                <td className="px-4 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/20 sticky left-0 z-10 backdrop-blur-sm">
+                                                    {field.label}
+                                                    {field.unit && <span className="text-[10px] text-slate-400 dark:text-slate-600 ml-1">({field.unit})</span>}
+                                                </td>
+                                                {selectedTablets.map((tablet, index) => {
+                                                    const val = (tablet as any)[field.key] || '-';
+                                                    const numVal = numericValues[index];
+
+                                                    const isMax = canHighlight && highlightMax && numVal === maxVal;
+                                                    const isMin = canHighlight && highlightMin && numVal === minVal;
+
+                                                    return (
+                                                        <td
+                                                            key={`${tablet.id}-${field.key}`}
+                                                            className={`px-4 py-1 text-sm border-r border-slate-100 dark:border-slate-800/50 last:border-r-0 relative ${isIdentical
+                                                                ? 'text-slate-400 dark:text-slate-500'
+                                                                : 'text-slate-900 dark:text-white font-medium bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-500/5 dark:to-transparent'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                {isMax && <TrendingUp size={14} className="text-emerald-500 dark:text-emerald-400 shrink-0" />}
+                                                                {isMin && <TrendingDown size={14} className="text-red-500 dark:text-red-400 shrink-0" />}
+                                                                <span className={`${isMax ? 'text-emerald-600 dark:text-emerald-300 font-bold' : ''} ${isMin ? 'text-red-600 dark:text-red-300 font-bold' : ''}`}>
+                                                                    {val}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
                                         );
                                     })}
-                                </tr>
+                                </React.Fragment>
                             );
                         })}
                     </tbody>
+
                 </table>
             </div>
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Database, AlertTriangle, Download, PanelLeftClose, PanelLeftOpen, History, GitCompare, Settings } from 'lucide-react';
 import { useData, prepareTabletForExport } from '../contexts/DataContext';
+import { useTabletWarnings } from '../hooks/useTabletWarnings';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -10,18 +11,41 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { tablets, flaggedIds } = useData();
+  const { stats: warningStats } = useTabletWarnings(tablets);
 
   const navItems = [
     { to: '/', icon: <Database size={20} />, label: 'Catalog' },
     { to: '/compare', icon: <GitCompare size={20} />, label: 'Compare', count: flaggedIds.length },
-    { to: '/warnings', icon: <AlertTriangle size={20} />, label: 'Warnings' },
+    { to: '/warnings', icon: <AlertTriangle size={20} />, label: 'Warnings', count: warningStats.total },
     { to: '/changes', icon: <History size={20} />, label: 'Changes' },
     { to: '/settings', icon: <Settings size={20} />, label: 'Settings' },
   ];
 
   const handleExport = () => {
     const exportData = {
-      DrawingTablets: tablets.map(t => prepareTabletForExport(t))
+      DrawingTablets: [...tablets]
+        .sort((a, b) => {
+          // 1. Sort by ModelBrand
+          const brandA = (a.ModelBrand || '').toLowerCase();
+          const brandB = (b.ModelBrand || '').toLowerCase();
+          if (brandA < brandB) return -1;
+          if (brandA > brandB) return 1;
+
+          // 2. Sort by ModelId
+          const modelIdA = (a.ModelId || '').toLowerCase();
+          const modelIdB = (b.ModelId || '').toLowerCase();
+          if (modelIdA < modelIdB) return -1;
+          if (modelIdA > modelIdB) return 1;
+
+          // 3. Sort by id
+          const idA = (a.id || '').toLowerCase();
+          const idB = (b.id || '').toLowerCase();
+          if (idA < idB) return -1;
+          if (idA > idB) return 1;
+
+          return 0;
+        })
+        .map(t => prepareTabletForExport(t))
     };
     const dataStr = JSON.stringify(exportData, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });

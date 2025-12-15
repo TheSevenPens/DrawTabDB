@@ -3,7 +3,10 @@ import { createPortal } from 'react-dom';
 import { TABLET_FIELDS } from '../tabletFields';
 import { Tablet } from '../types';
 import { prepareTabletForExport } from '../contexts/DataContext';
-import { X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson, Copy, Check } from 'lucide-react';
+import { Trash2, AlertTriangle, ArrowLeft, ArrowRight, X, Save, ExternalLink, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, Monitor, Info, FileJson, Copy, Check } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
+import { parseDimensions, calculateArea } from '../utils/dimensionUtils';
+import { mmToInches, lpmToLpi, kgsToLbs } from '../utils/unitUtils';
 
 interface TabletDetailsDialogProps {
   isOpen: boolean;
@@ -158,27 +161,27 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
   const tabConfig = {
     CORE: [
       {
-        title: "General Information",
+        title: "Model",
         fields: ["ModelBrand", "ModelFamily", "ModelName", "ModelId", "ModelLaunchYear", "ModelAge", "ModelStatus", "ModelType", "ModelProductLink", "ModelIncludedPen", "ModelAudience"]
       },
       {
-        title: "Physical Dimensions",
+        title: "Physical",
         fields: ["PhysicalDimensions", "PhysicalWeight", "PhysicalWeightInclStand"]
       },
       {
-        title: "Digitizer & Pen",
+        title: "Digitizer",
         fields: ["DigitizerDimensions", "DigitizerDiagonal", "DigitizerArea", "DigitizerPressureLevels", "DigitizerReportRate", "DigitizerResolution", "DigitizerType", "DigitizerTilt", "DigitizerMaxHover", "DigitizerAccuracyCenter", "DigitizerAccuracyCorner", "DigitizerSupportsTouch"]
       }
     ],
     DISPLAY: [
       {
-        title: "Display Specs",
-        fields: ["DisplayResolution", "DisplayPixelDensity", "DisplaySize", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
+        title: "Display",
+        fields: ["DisplayResolution", "DisplayPixelDensity", "DisplayDimensions", "DisplayColorGamuts", "DisplayContrast", "DisplayBrightness", "DisplayResponseTime", "DisplayViewingAngleHorizontal", "DisplayViewingAngleVertical", "DisplayPanelTech", "DisplayColorBitDepth", "DisplayRefreshRate", "DisplayAntiGlare", "DisplayLamination"]
       }
     ],
     META: [
       {
-        title: "System Info",
+        title: "System",
         fields: ["id", "CreateDate", "ModifiedDate"]
       }
     ]
@@ -396,14 +399,20 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
 
                     const hasDropdown = isBrand || isType || isDigitizerType || isLamination || isAntiGlare || isAudience || isDisplayPanelTech || isDisplayResolution || isSupportsTouch;
 
-                    let calculatedValue: string | undefined = undefined;
+                    // Helper logic for DigitizerArea
+                    let areaInSqInches: string | undefined = undefined;
                     if (field === 'DigitizerArea') {
-                      const match = ((formData as any).DigitizerDimensions || '').match(/(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)/);
-                      if (match) {
-                        const area = (parseFloat(match[1]) * parseFloat(match[2])) / 100;
-                        calculatedValue = isNaN(area) ? '' : area.toFixed(2);
+                      // Use dimensions field to calculate (TabletDetailsDialog previously relied on parsing DigitizerDimensions inline)
+                      const dims = parseDimensions((formData as any).DigitizerDimensions);
+                      if (dims) {
+                        const areaMm2 = calculateArea(dims);
+                        if (areaMm2) {
+                          areaInSqInches = (areaMm2 * 0.0015500031).toFixed(2);
+                        }
                       }
                     }
+                    // Compatibility for input field override if needed
+                    const calculatedValue = field === 'DigitizerArea' ? areaInSqInches : undefined;
 
                     return (
                       <div
@@ -555,16 +564,16 @@ const TabletDetailsDialog: React.FC<TabletDetailsDialogProps> = ({
 
                         {/* Helpers */}
                         {isDigitizerDiagonal && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) / 25.4).toFixed(2)}″</p>
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {mmToInches(parseFloat((formData as any)[field])).toFixed(2)}″</p>
                         )}
                         {isDigitizerResolution && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {Math.round(parseFloat((formData as any)[field]) * 25.4)} LPI</p>
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {Math.round(lpmToLpi(parseFloat((formData as any)[field])))} LPI</p>
                         )}
                         {isPhysicalWeight && (formData as any)[field] && !isNaN(parseFloat((formData as any)[field])) && (
-                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat((formData as any)[field]) * 0.00220462).toFixed(2)} lbs</p>
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {kgsToLbs(parseFloat((formData as any)[field]) / 1000).toFixed(2)} lbs</p>
                         )}
-                        {field === 'DigitizerArea' && calculatedValue && !isNaN(parseFloat(calculatedValue)) && (
-                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {(parseFloat(calculatedValue) * 0.15500031).toFixed(2)} in²</p>
+                        {field === 'DigitizerArea' && areaInSqInches && (
+                          <p className="text-[10px] text-slate-500 font-mono text-right pr-1">≈ {areaInSqInches} in²</p>
                         )}
                       </div>
                     );
